@@ -304,8 +304,8 @@
     {
       "source": "payload/assets/keys/h7607a-build.gpg",
       "destination": "assets/keys/h7607a-build.gpg",
-      "bytes": 250,
-      "sha256": "86d33d412a7449109926a2b4ac65504b61a1535da78d913d297d5a50e033bff0",
+      "bytes": 275,
+      "sha256": "2b501418cbca0744ef994a22cfc6a4326ff40697f07ab4397429f98b64c08bf0",
       "mode": 420
     },
     {
@@ -319,7 +319,7 @@
       "source": "payload/locks/packages.json",
       "destination": "locks/packages.json",
       "bytes": 19688,
-      "sha256": "dea5ef383a0c39efa6d6f4523e5ded7421a74e78fa0b5a695a7ec93bda14bba9",
+      "sha256": "a151e65db31e15dd884a7f372fe5438cc56653dc9adb3c01881ba6db915806ed",
       "mode": 420
     },
     {

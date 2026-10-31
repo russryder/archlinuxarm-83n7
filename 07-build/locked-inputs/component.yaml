@@ -6046,9 +6046,9 @@
       "id": "local-key",
       "path": "assets/keys/h7607a-build.gpg",
       "urls": [],
-      "fingerprint": "100A50E46DC2C244F838DCBFABD48F465F4434BD",
-      "bytes": 250,
-      "sha256": "86d33d412a7449109926a2b4ac65504b61a1535da78d913d297d5a50e033bff0"
+      "fingerprint": "4069F8E2F14BE8F1FAE7BEE4FC20DA62C34E1C1F",
+      "bytes": 275,
+      "sha256": "2b501418cbca0744ef994a22cfc6a4326ff40697f07ab4397429f98b64c08bf0"
     },
     {
       "lock": "locks/packages.json",

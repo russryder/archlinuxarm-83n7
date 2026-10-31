@@ -55,11 +55,11 @@
     },
     {
       "manifest": "07-build/packages/component.yaml",
-      "sha256": "f13b01dbe4c6344602777ba01f6f778504c8b7debe576da75017176fd2f8eead"
+      "sha256": "f2b8cabfc8d70735acf7dc75ab6c8136d72c8183c3226f2f4dee78d06b20b95a"
     },
     {
       "manifest": "07-build/locked-inputs/component.yaml",
-      "sha256": "53318290c28743980fb099d3149dce109b1b5ea8b93dc3b40f1722e5b6adf52c"
+      "sha256": "2f2b5af348d422d8a4fda9abcc97ae5123611cfafd71799987a9f87f2c795770"
     },
     {
       "manifest": "08-documentation/current/component.yaml",
