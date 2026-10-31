@@ -56,7 +56,7 @@ credentials, SSH host keys, random seed and machine ID, and removes the upstream
 only, and the live root is persistent, so Wi-Fi credentials entered there stay
 on the stick. It runs NetworkManager, systemd-resolved, timesyncd and the N1X
 power services, with SSH, Bluetooth, other network managers and wait-online
-units disabled, uses `C.UTF-8`, the UK keymap and the Terminus console font,
+units disabled, uses `C.UTF-8`, the US keymap and the Terminus console font,
 and caps its persistent journal at 128 MiB. None of this carries over to the
 installed system, which gets the locale, keymap, accounts and services chosen
 in Archinstall.

@@ -51,7 +51,7 @@
     },
     {
       "manifest": "07-build/media/component.yaml",
-      "sha256": "f6ddab1b4a8b42a9555ccd9aec0a7c222db7336ba1f810379c4ae7f58fe531d2"
+      "sha256": "3111028c14628d5e37abe2bcf65f17d7888a317812304bbc1f79a7f511606f6d"
     },
     {
       "manifest": "07-build/packages/component.yaml",
@@ -63,7 +63,7 @@
     },
     {
       "manifest": "08-documentation/current/component.yaml",
-      "sha256": "485c384f9cc11e32020303c2703be94db97b416aed55668f73aec7bea50607e0"
+      "sha256": "40831a7c9e92544143ad85896b4a0d94a1fa6657041a52364a122cfb4fc96af1"
     }
   ],
   "assembly": {

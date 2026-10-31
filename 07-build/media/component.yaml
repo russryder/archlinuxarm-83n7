@@ -707,7 +707,7 @@
       "source": "payload/scripts/build-live.py",
       "destination": "scripts/build-live.py",
       "bytes": 21063,
-      "sha256": "3f3078d494bd57aae4a6680826938c56ad81a897c1c23cad624cedb5ffe76efe",
+      "sha256": "71a0bf68c77d18908e5ebc32d0321f4548d835802353c456c346e06fb7699f9c",
       "mode": 493
     },
     {

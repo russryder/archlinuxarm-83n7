@@ -178,7 +178,7 @@ def configure_live_console(root):
  # to choose the kernel console decoder; Python's UTF-8 coercion alone cannot
  # correct that decoder. C.UTF-8 is built into the pinned glibc.
  write_text(root,'etc/locale.conf','LANG=C.UTF-8\n')
- write_text(root,'etc/vconsole.conf','KEYMAP=uk\n')
+ write_text(root,'etc/vconsole.conf','KEYMAP=us\n')
 
 
 def hygiene(root):
