@@ -20,3 +20,5 @@ H7607A-ACPI/
 /07-build/locked-inputs/payload/.artifacts/packages/nvidia-open-dkms-615.78.08-1-aarch64.pkg.tar.xz
 /07-build/locked-inputs/payload/.artifacts/packages/nvidia-utils-615.78.08-1-aarch64.pkg.tar.xz
 /07-build/locked-inputs/payload/.artifacts/sources/
+# Yoga 9n hardware captures hold firmware tables and OEM driver firmware.
+/bringup/yoga-9n/captures/
