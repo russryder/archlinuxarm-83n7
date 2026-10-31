@@ -3,7 +3,7 @@
   "package": "h7607a-hardware",
   "inputs": [
     {
-      "artifact_id": "mt8901-h7607ba-audio",
+      "artifact_id": "mt8901-yoga9n-audio",
       "filename": "mt8901-acp-sdw-legacy-mach.ko"
     },
     {
@@ -44,15 +44,11 @@
     },
     {
       "artifact_id": "h7607a-ucm-playback",
-      "filename": "P16-playback.conf"
+      "filename": "Yoga9n-playback.conf"
     },
     {
       "artifact_id": "h7607a-wireplumber-playback",
       "filename": "51-h7607a-playback.conf"
-    },
-    {
-      "artifact_id": "h7607a-touchpad-quirk",
-      "filename": "60-h7607a-touchpad.quirks"
     },
     {
       "artifact_id": "h7607a-audio-helper",

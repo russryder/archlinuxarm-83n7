@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""P16 display/keyboard brightness using existing logind authorization."""
+"""Yoga 9n display/keyboard brightness using existing logind authorization."""
 import argparse
 from pathlib import Path
 import re
@@ -10,13 +10,15 @@ SYS_CLASS = Path("/sys/class")
 ALLOWED = {
     "brightness-up": ("backlight", "nvidia_0"),
     "brightness-down": ("backlight", "nvidia_0"),
-    "keyboard-cycle": ("leds", "asus::kbd_backlight"),
+    # The name ideapad-laptop gives the keyboard LED; it appears once that driver binds
+    # the Yoga's \_SB.VPC0 (IDEA4003).
+    "keyboard-cycle": ("leds", "platform::kbd_backlight"),
 }
 
 
 def read_levels(subsystem, name):
     if (subsystem, name) not in ALLOWED.values():
-        raise ValueError("device is outside the fixed P16 whitelist")
+        raise ValueError("device is outside the fixed Yoga 9n whitelist")
     device = SYS_CLASS / subsystem / name
     values = []
     for attribute in ("brightness", "max_brightness"):
@@ -42,7 +44,7 @@ def target_level(action, current, maximum):
 
 def bus_command(subsystem, name, level):
     if (subsystem, name) not in ALLOWED.values() or not 0 <= level <= 0xffffffff:
-        raise ValueError("brightness request is outside the fixed P16 whitelist")
+        raise ValueError("brightness request is outside the fixed Yoga 9n whitelist")
     return ["/usr/bin/busctl", "--system", "--timeout=3s",
             "--allow-interactive-authorization=no", "call", "org.freedesktop.login1",
             "/org/freedesktop/login1/session/auto", "org.freedesktop.login1.Session",
@@ -66,13 +68,13 @@ def main():
         print(f"{name}: requested {target}/{maximum}")
         return 0
     except FileNotFoundError:
-        detail = ("keyboard LED is unavailable; the P16 HID candidate must first be loaded and qualified"
+        detail = ("keyboard LED is unavailable; it needs ideapad-laptop bound to IDEA4003"
                   if action == "keyboard-cycle" else "NVIDIA backlight or busctl is unavailable")
     except subprocess.TimeoutExpired:
         detail = "logind request timed out; the hardware write may still finish"
     except (OSError, RuntimeError, ValueError) as error:
         detail = str(error)
-    print(f"p16-brightness: unavailable: {detail}", file=sys.stderr)
+    print(f"h7607a-brightness: unavailable: {detail}", file=sys.stderr)
     return 1
 
 

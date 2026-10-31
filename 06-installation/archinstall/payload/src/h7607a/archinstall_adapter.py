@@ -641,32 +641,36 @@ def install_development(target: Path, repo: Path, profiles, usernames, wheelhous
     return failures
 
 
-SPEAKER_TUNING_CACHE = Path("/var/cache/h7607a")
+def install_speaker_tuning(target: Path, repo: Path) -> dict | None:
+    """Install the Cirrus amplifier firmware and tuning staged on the installer.
 
-
-def install_speaker_tuning(target: Path, repo: Path, cache: Path = SPEAKER_TUNING_CACHE) -> dict | None:
-    """Install the Cirrus amplifier tuning extracted from the pinned ASUS driver package.
-
-    The files may not be redistributed, so every installation downloads the
-    package itself. Returns None after a warning when that fails.
+    The Lenovo files may not be redistributed and have no pinned public
+    download, so scripts/stage-lenovo-tuning.py copies them from the owner's
+    own Windows driver store into the installer tree before the image is built.
+    Returns None after a warning when they are absent; a present file that
+    differs from its pin stops the installation.
     """
     from h7607a import artifacts, hardware
 
-    rows = [row for row in hardware.load_hardware_lock(repo)["artifacts"] if "extract" in row]
-    print("Downloading the Cirrus speaker tuning from the ASUS driver package", flush=True)
-    try:
-        cache.mkdir(mode=0o700, parents=True, exist_ok=True)
-        extracted = [(row, artifacts.fetch(cache, row).read_bytes()) for row in rows]
-    except (artifacts.ArtifactError, OSError, subprocess.SubprocessError) as error:
-        spec = rows[0]["extract"]
-        package = (spec["from"].get("urls") or [PurePosixPath(spec["from"]["path"]).name])[0]
-        names = ", ".join(PurePosixPath(row["target"]).name for row in rows)
-        print(f"\nWarning: the speaker tuning was not installed: {error}\n"
-              "The internal speakers then run without the ASUS tuning. To add it later, extract "
-              f"{names} from the 7-Zip archive at byte offset {spec['offset']} of {package} "
-              f"(member paths in {repo / 'locks/hardware.json'} on the installer USB) into "
-              "/usr/lib/firmware/cirrus/ and run 'mkinitcpio -P'.", flush=True)
+    rows = [row for row in hardware.load_hardware_lock(repo)["artifacts"] if row.get("speaker_tuning")]
+    if not rows:
         return None
+    absent = [row for row in rows if not os.path.lexists(artifacts.artifact_path(repo, row))]
+    if absent:
+        names = ", ".join(PurePosixPath(row["target"]).name for row in absent[:3])
+        more = f" and {len(absent) - 3} more" if len(absent) > 3 else ""
+        print(f"\nWarning: the speaker tuning was not installed: {names}{more} are not on the installer.\n"
+              "The internal speakers then run without the Lenovo tuning. To add it later, run "
+              "scripts/stage-lenovo-tuning.py on this Yoga's xucsmeext_3802_fdl driver store folder, copy "
+              "the staged files into /usr/lib/firmware/cirrus/ and run 'mkinitcpio -P'.", flush=True)
+        return None
+    extracted = []
+    for row in rows:
+        try:
+            extracted.append((row, artifacts.verify(repo, row).read_bytes()))
+        except (artifacts.ArtifactError, OSError) as error:
+            raise InstallError(f"Speaker tuning on the installer differs from its pin: {error}") from error
+    print(f"Installing {len(extracted)} Cirrus firmware and tuning files", flush=True)
     root = hardware._root(target)
     for row, data in extracted:
         path = hardware._under(root, row["target"])

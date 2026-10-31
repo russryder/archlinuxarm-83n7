@@ -458,67 +458,67 @@ def pin(path, data):
 
 
 class SpeakerTuningTest(unittest.TestCase):
-    PREFIX = b"MZ" + bytes(510)
-    MEMBERS = {"XU_Ext/fw/a.wmfw": b"wmfw\n" * 64, "XU_Ext/tn/b.bin": b"tuning\n" * 32}
+    FILES = {"cs35l56-b0-dsp1-misc-17aa3802.wmfw": b"wmfw\n" * 64,
+             "cs35l56-b0-dsp1-misc-17aa3802-l1u0.bin": b"tuning\n" * 32}
 
     def setUp(self):
         root = temporary_directory(self)
-        source = root / "source"
-        for member, data in self.MEMBERS.items():
-            (source / member).parent.mkdir(parents=True, exist_ok=True)
-            (source / member).write_bytes(data)
-        archive = root / "a.7z"
-        subprocess.run(["bsdtar", "--format", "7zip", "-cf", archive, "-C", source, "XU_Ext"], check=True)
-        self.container = self.PREFIX + archive.read_bytes()
-        driver = {**pin(".artifacts/asus/driver.exe", self.container), "urls": []}
-        self.rows = [{**pin("assets/hardware/firmware/cirrus/" + Path(member).name, data),
-                      "extract": {"from": driver, "offset": len(self.PREFIX), "member": member},
-                      "target": "usr/lib/firmware/cirrus/" + Path(member).name}
-                     for member, data in self.MEMBERS.items()]
         self.repo = root / "repo"
+        self.rows = [{**pin("assets/hardware/firmware/cirrus/" + name, data), "urls": [], "speaker_tuning": True,
+                      "target": "usr/lib/firmware/cirrus/" + name} for name, data in self.FILES.items()]
         (self.repo / "locks").mkdir(parents=True)
         (self.repo / "locks/hardware.json").write_text(json.dumps({"artifacts": [
             {**pin("assets/hardware/acpi/h7607a-acpi.cpio", b"acpi"), "boot": "h7607a-acpi.cpio"}, *self.rows]}))
-        self.cache = root / "cache"
         self.target = root / "target"
         (self.target / "usr/lib/firmware/cirrus").mkdir(parents=True)
         patcher = mock.patch.object(adapter.os, "chown")
         self.chown = patcher.start()
         self.addCleanup(patcher.stop)
 
-    def seed_driver_package(self):
-        (self.cache / ".artifacts/asus").mkdir(parents=True)
-        (self.cache / ".artifacts/asus/driver.exe").write_bytes(self.container)
+    def stage(self, files=None):
+        (self.repo / "assets/hardware/firmware/cirrus").mkdir(parents=True, exist_ok=True)
+        for name, data in (files or self.FILES).items():
+            (self.repo / "assets/hardware/firmware/cirrus" / name).write_bytes(data)
 
     def install(self):
-        with contextlib.redirect_stdout(io.StringIO()):
-            return adapter.install_speaker_tuning(self.target, self.repo, self.cache)
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            result = adapter.install_speaker_tuning(self.target, self.repo)
+        self.output = output.getvalue()
+        return result
 
-    def test_extracted_files_are_installed_root_owned(self):
-        self.seed_driver_package()
+    def test_staged_files_are_installed_root_owned(self):
+        self.stage()
         installed = self.install()
-        self.assertEqual(sorted(installed), ["/" + row["target"] for row in self.rows])
-        for row, data in zip(self.rows, self.MEMBERS.values()):
+        self.assertEqual(sorted(installed), sorted("/" + row["target"] for row in self.rows))
+        for row, data in zip(self.rows, self.FILES.values()):
             path = self.target / row["target"]
             self.assertEqual(path.read_bytes(), data)
             self.assertEqual(path.stat().st_mode & 0o7777, 0o644)
             self.chown.assert_any_call(path, 0, 0)
 
     def test_identical_existing_file_is_accepted(self):
-        self.seed_driver_package()
-        (self.target / self.rows[0]["target"]).write_bytes(self.MEMBERS["XU_Ext/fw/a.wmfw"])
+        self.stage()
+        (self.target / self.rows[0]["target"]).write_bytes(self.FILES["cs35l56-b0-dsp1-misc-17aa3802.wmfw"])
         self.assertEqual(len(self.install()), 2)
 
     def test_different_existing_file_is_kept(self):
-        self.seed_driver_package()
+        self.stage()
         (self.target / self.rows[1]["target"]).write_bytes(b"newer upstream tuning")
         with self.assertRaises(InstallError):
             self.install()
         self.assertEqual((self.target / self.rows[1]["target"]).read_bytes(), b"newer upstream tuning")
         self.assertFalse((self.target / self.rows[0]["target"]).exists())
 
-    def test_failed_download_leaves_the_target_untouched(self):
+    def test_absent_tuning_warns_and_leaves_the_target_untouched(self):
+        self.stage({"cs35l56-b0-dsp1-misc-17aa3802.wmfw": self.FILES["cs35l56-b0-dsp1-misc-17aa3802.wmfw"]})
         self.assertIsNone(self.install())
+        self.assertIn("stage-lenovo-tuning.py", self.output)
+        self.assertEqual(list((self.target / "usr/lib/firmware/cirrus").iterdir()), [])
+
+    def test_altered_tuning_on_the_installer_is_refused(self):
+        self.stage({**self.FILES, "cs35l56-b0-dsp1-misc-17aa3802-l1u0.bin": b"altered\n" * 32})
+        with self.assertRaises(InstallError):
+            self.install()
         self.assertEqual(list((self.target / "usr/lib/firmware/cirrus").iterdir()), [])
 
 

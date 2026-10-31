@@ -364,12 +364,12 @@
           "sha256": "c01bab78a49e3c20ddd3787d45f33b60898b9d26632bf4bf581fa372fefd78ab"
         },
         "packages/h7607a-hardware/PKGBUILD": {
-          "bytes": 3999,
-          "sha256": "1aaaadd583730657ff6741c2a3732408b3c4ab0870c61fd23cb961eeaf55f4b3"
+          "bytes": 3756,
+          "sha256": "3eacab1d39d3cc3729fa0ef9c010b6580d328e568aa4a9b8acecc05e6900fa09"
         },
         "packages/h7607a-hardware/inputs.json": {
-          "bytes": 1561,
-          "sha256": "183215dd77841931ee11173ac4e41d514c464f374c0332718282e8fff2e5df95"
+          "bytes": 1458,
+          "sha256": "7e1f5522757aa6e9893c33a90738fb62a1bf22d240d8dff235a39d020b407018"
         }
       }
     },

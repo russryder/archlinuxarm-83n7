@@ -15,7 +15,7 @@
     },
     {
       "manifest": "02-drivers/audio/component.yaml",
-      "sha256": "84698dbb901d74b96fcfe674352357f0a522addf9dec27d67dba86ba85361ffa"
+      "sha256": "4a26477c6c6431a492f9cac9ecf41c1aecf441bd067ccee6f5eb1d3c2d35bd28"
     },
     {
       "manifest": "02-drivers/soundwire/component.yaml",
@@ -31,7 +31,7 @@
     },
     {
       "manifest": "03-system/input-audio/component.yaml",
-      "sha256": "20b380729796d9ba412de2c3b00a6c2ad8a7a8b9ab13d3043f4e394bdb8d3898"
+      "sha256": "bb1642d55b510e684f10d7e3c7a8930eb71a9793de7324f16747e975aee7d85c"
     },
     {
       "manifest": "05-development/python-cuda/component.yaml",
@@ -43,7 +43,7 @@
     },
     {
       "manifest": "06-installation/archinstall/component.yaml",
-      "sha256": "630d8b9e8f617de25e3901ec1c714a26995ab21114a8fc48c6267a59aca49cc3"
+      "sha256": "b6ff5af34bfbe2c452dba1a28461b572fd39bac2d091df80a6ebc70a03ea96e8"
     },
     {
       "manifest": "06-installation/wheel-carrier/component.yaml",
@@ -51,11 +51,11 @@
     },
     {
       "manifest": "07-build/media/component.yaml",
-      "sha256": "546d7bcc221a55651e4ed62490ed4a59333b92f707917c0cfdb651b581a55374"
+      "sha256": "f6ddab1b4a8b42a9555ccd9aec0a7c222db7336ba1f810379c4ae7f58fe531d2"
     },
     {
       "manifest": "07-build/packages/component.yaml",
-      "sha256": "f4cad5ee65ff151a9081f1bc4252033b4df13562a5417c61879c42a9c7c78f6a"
+      "sha256": "f13b01dbe4c6344602777ba01f6f778504c8b7debe576da75017176fd2f8eead"
     },
     {
       "manifest": "07-build/locked-inputs/component.yaml",

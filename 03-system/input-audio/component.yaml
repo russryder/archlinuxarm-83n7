@@ -260,7 +260,7 @@
       "note": "WirePlumber 0.5.18; helper itself is custom and wraps wpctl.",
       "id": "audio-playback",
       "files": [
-        "runtime/usr/share/alsa/ucm2/MediaTek/mt8901-soundwir/P16-playback.conf",
+        "runtime/usr/share/alsa/ucm2/MediaTek/mt8901-soundwir/Yoga9n-playback.conf",
         "runtime/usr/share/alsa/ucm2/conf.d/mt8901-soundwir/mt8901-soundwir.conf",
         "runtime/usr/share/wireplumber/wireplumber.conf.d/51-h7607a-playback.conf",
         "runtime/usr/bin/h7607a-audio"
@@ -332,29 +332,22 @@
     {
       "source": "payload/runtime/usr/bin/h7607a-brightness",
       "destination": "runtime/usr/bin/h7607a-brightness",
-      "bytes": 3298,
-      "sha256": "b152c2715e71bb0b6a1d5f86d86687dea989af68e5eaa6868b55fe13d8d4ef75",
+      "bytes": 3429,
+      "sha256": "a656099b0caf650e7f52e8f095ebdbb9edcfd8b914ccd320d8e13d271e8ae495",
       "mode": 493
     },
     {
-      "source": "payload/runtime/usr/share/alsa/ucm2/MediaTek/mt8901-soundwir/P16-playback.conf",
-      "destination": "runtime/usr/share/alsa/ucm2/MediaTek/mt8901-soundwir/P16-playback.conf",
-      "bytes": 2125,
-      "sha256": "25d0ac355f3572d94106ce676e248396a0ee5af6b6ddb9319571719b9bff7e93",
+      "source": "payload/runtime/usr/share/alsa/ucm2/MediaTek/mt8901-soundwir/Yoga9n-playback.conf",
+      "destination": "runtime/usr/share/alsa/ucm2/MediaTek/mt8901-soundwir/Yoga9n-playback.conf",
+      "bytes": 2859,
+      "sha256": "184987b65502ba4f49fdc5246176e75e351fae3e920d0e7d2e3c69f5b108576e",
       "mode": 420
     },
     {
       "source": "payload/runtime/usr/share/alsa/ucm2/conf.d/mt8901-soundwir/mt8901-soundwir.conf",
       "destination": "runtime/usr/share/alsa/ucm2/conf.d/mt8901-soundwir/mt8901-soundwir.conf",
-      "bytes": 307,
-      "sha256": "1b6d0a8a85b748d7e09651d4931181a991e388b43729b3201040ef3e3dfb41a1",
-      "mode": 420
-    },
-    {
-      "source": "payload/runtime/usr/share/libinput/60-h7607a-touchpad.quirks",
-      "destination": "runtime/usr/share/libinput/60-h7607a-touchpad.quirks",
-      "bytes": 289,
-      "sha256": "2d87cd28673df8ad01f8fadd2d313daf5b412bafea584a894c8334b505fe23f2",
+      "bytes": 315,
+      "sha256": "bb85333cb3e0a9681a9ca1562ebf4bd66a9b43ceefcb271da4819f5ef3dcef9f",
       "mode": 420
     },
     {

@@ -6,6 +6,7 @@ set -euo pipefail
 usage() {
     printf 'Usage: %s [--fetch] {assemble|build} /absolute/output\n' "$0" >&2
     printf '%s\n' '--fetch downloads absent pinned inputs from their lock URLs and verifies them.' >&2
+    printf '%s\n' 'H7607A_FETCH_CACHE=DIR[:DIR...] lets --fetch reuse verified copies from earlier trees.' >&2
     exit 2
 }
 
@@ -153,8 +154,15 @@ while IFS= read -r manifest; do
 done
 
 cd -- "$output"
-if [[ $fetch == yes ]] && ! python3 -B scripts/fetch.py "${locks[@]}"; then
-    resume="python3 -B scripts/fetch.py ${locks[*]} && python3 -B scripts/release.py seal"
+# H7607A_FETCH_CACHE lists directories, separated by colons, that fetch.py
+# searches by file name and SHA-256 before downloading; matches are verified.
+cache=()
+IFS=: read -r -a cache_dirs <<< "${H7607A_FETCH_CACHE-}"
+for directory in "${cache_dirs[@]}"; do
+    [[ -n $directory ]] && cache+=(--cache "$directory")
+done
+if [[ $fetch == yes ]] && ! python3 -B scripts/fetch.py ${cache[@]+"${cache[@]}"} "${locks[@]}"; then
+    resume="python3 -B scripts/fetch.py ${cache[*]-} ${locks[*]} && python3 -B scripts/release.py seal"
     if [[ $action == build ]]; then
         resume="$resume && python3 -B scripts/build-live.py build"
     fi

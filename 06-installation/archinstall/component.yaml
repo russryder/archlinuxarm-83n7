@@ -337,8 +337,8 @@
     {
       "source": "payload/src/h7607a/archinstall_adapter.py",
       "destination": "src/h7607a/archinstall_adapter.py",
-      "bytes": 53851,
-      "sha256": "38dfeba7de76417e5787fa03393f0303c952744969fcd6148598f367ebf1dfd8",
+      "bytes": 54099,
+      "sha256": "9c89a4b6c8c143b9fb5176e238f3b8410cb28dfdcd08eab79f0d7b01d81c1def",
       "mode": 420
     },
     {
@@ -358,8 +358,8 @@
     {
       "source": "payload/tests/test_archinstall_adapter.py",
       "destination": "tests/test_archinstall_adapter.py",
-      "bytes": 26284,
-      "sha256": "073933798ef681c4060c37f08d4ce757d659c04ef775eef73207f34d6bb8229c",
+      "bytes": 26297,
+      "sha256": "00f2bfdcb6825a9f9fcd983ba00b6c1ddff5bf251765c139e6de66f04986759f",
       "mode": 420
     }
   ],

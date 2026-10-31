@@ -22,7 +22,7 @@
   ],
   "items": [
     {
-      "id": "h7607ba-machine-identity",
+      "id": "yoga9n-machine-identity",
       "type": "patch",
       "repo_url": "https://github.com/NVIDIA/NV-Kernels",
       "checkout_hash": "2234cd7f8f8a9fdbceef37f82c531016aab8cf73",
@@ -33,7 +33,7 @@
       "patch": "provenance/hardware/audio-identity.patch",
       "target": "sound/soc/mediatek/mt8901/mt8901-acp-sdw-legacy-mach.c",
       "notes": [
-        "Select OEM subsystem 10431484 and headphone backend."
+        "Select OEM subsystem 17aa3802 when DMI reports LENOVO 83N7 on board LNVNB161216."
       ],
       "dependencies": [
         {
@@ -44,7 +44,7 @@
           "scope": "source build: Module.symvers SHA256 ad63eccd8911085a10d7996b78dd0c40f6bcaa0b32d42986a9cce39e0101a7ba; original .config SHA256 3702382acae6cb607b441f0a44c2f0929a9ed98b9d33dcf2f731b1a1d1469297"
         }
       ],
-      "source_build_note": "provenance/hardware/audio-build.sh rebuilds the module from audio-source.c with the inputs recorded in audio-build.json and compares it with the shipped binary. Reversing the identity patch on audio-source.c gives the pinned NV-Kernels file."
+      "source_build_note": "provenance/hardware/audio-build.sh rebuilds the module from audio-source.c with the inputs recorded in audio-build.json, checks its imports against the stock module of the pinned kernel plus dmi_match, and compares it with the shipped binary. Reversing the identity patch on audio-source.c gives the pinned NV-Kernels file."
     },
     {
       "id": "cirrus-oem-tuning",
@@ -55,48 +55,51 @@
         "enabled": false,
         "paths": []
       },
-      "source_url": "https://dlcdnets.asus.com/pub/ASUS/nb/Image/Driver/Audio/49783/Audio_Driver_ARM_Cirrus_Z_V1.0.678.52824Sub3_49783.exe",
-      "version": "ASUS Cirrus 1.0.678.52824; WMFW 3.13.4",
+      "source_url": null,
+      "version": "Lenovo/Cirrus XuCsMeExt_3802_FDL 1.1.0.11; WMFW 3.13.5",
       "notes": [
-        "The installer downloads the pinned ASUS driver package on the owner's machine and extracts the three tuning files into /usr/lib/firmware/cirrus/; see locks/hardware.json.",
+        "No public download of the Lenovo package is pinned. scripts/stage-lenovo-tuning.py copies the eight tuning files and the WMFW from the owner's own Windows driver store under their Linux names, after checking each against its pin.",
+        "Names use SSID 17aa3802 and amps l1u0, l1u1, l1u4, l1u5; SS0/SS1 become spkid0/spkid1, and the plain names without spkid come from SS0 because the firmware declares no speaker-ID GPIO.",
+        "The installer copies them from the installer tree into /usr/lib/firmware/cirrus/; see locks/hardware.json.",
         "The files are not stored in this repository. Redistribution permission is not asserted."
-      ]
+      ],
+      "code": "scripts/stage-lenovo-tuning.py"
     }
   ],
   "files": [
     {
       "source": "payload/assets/hardware/modules/mt8901-acp-sdw-legacy-mach.ko",
       "destination": "assets/hardware/modules/mt8901-acp-sdw-legacy-mach.ko",
-      "bytes": 524864,
-      "sha256": "82061bce3a3b649c9f351b398c59546c8a978b2c3badbaa07436e6221e91d5de",
+      "bytes": 525896,
+      "sha256": "7af72997e99fd9698b232293a4bd4c3b7282eff43defa063c63c763e55cf4727",
       "mode": 420
     },
     {
       "source": "payload/provenance/hardware/audio-build.json",
       "destination": "provenance/hardware/audio-build.json",
-      "bytes": 17305,
-      "sha256": "f990e6f9953fcd7cc19315a37e3a6cdb97d014040fa482abd93649e05e5fbbb5",
+      "bytes": 5437,
+      "sha256": "f137777a562e4aef96ec49befa9e38513dcfc5594f90ba2c898a9d6b4b2df5ff",
       "mode": 420
     },
     {
       "source": "payload/provenance/hardware/audio-build.sh",
       "destination": "provenance/hardware/audio-build.sh",
-      "bytes": 6427,
-      "sha256": "ba2b718b3efe89277f149d18f31b84e2fd4d7df4da0dcbc23ff3b91e043d49a9",
+      "bytes": 7970,
+      "sha256": "d5d59e492645051b0b2073f5b8c3c199e0e87ff2fae3df5e9972c7e55ed0be8b",
       "mode": 493
     },
     {
       "source": "patches/provenance/hardware/audio-identity.patch",
       "destination": "provenance/hardware/audio-identity.patch",
-      "bytes": 730,
-      "sha256": "86beaf1e1a8e4e1389c2d3c648781921944967e9b1170118216298442370180f",
+      "bytes": 705,
+      "sha256": "ce129a3a358551ca16f14fd8e1ab6db4fe7a74aac620b88d780fd8af6b3c8222",
       "mode": 420
     },
     {
       "source": "payload/provenance/hardware/audio-source.c",
       "destination": "provenance/hardware/audio-source.c",
-      "bytes": 19201,
-      "sha256": "4a3e4318ede455010a0e92eb776bcad22a7b3a5582d5bd75edfa5a33abf264e0",
+      "bytes": 19178,
+      "sha256": "565fb10356a84af9947f82d955365ae2f71308fc255ba043a01691b8e9d6e546",
       "mode": 420
     },
     {
@@ -105,6 +108,133 @@
       "bytes": 38,
       "sha256": "5fb2bb7d15adf4fc4a766c3ef32c7ec4048237a07bf74ae686e10076ae9f77af",
       "mode": 420
+    },
+    {
+      "source": "payload/scripts/stage-lenovo-tuning.py",
+      "destination": "scripts/stage-lenovo-tuning.py",
+      "bytes": 5429,
+      "sha256": "11c58c63c3d391a168f3f4b50e9fb882867680aefeb890ff2f589454d79fa596",
+      "mode": 493
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-l1u0.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-l1u0.bin",
+      "bytes": 10168,
+      "sha256": "8672461f27ce9117b9393188596756e3dab9eb1efbde0ee387f336dac0aed32e",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-l1u1.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-l1u1.bin",
+      "bytes": 10168,
+      "sha256": "0e36b74ce5e8e537fbd0a66d3bf175e9f07172f16398ee760847ef55cae8a1b3",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-l1u4.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-l1u4.bin",
+      "bytes": 10168,
+      "sha256": "4dd42a3df6051eb9a1dd595220982c1ea755a2063138503a66e624c4fdb2fc12",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-l1u5.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-l1u5.bin",
+      "bytes": 10168,
+      "sha256": "71e4fbc50917e8d9334c66dedf91ceb6dda483da551a6d782acc9e603a695f0a",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid0-l1u0.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid0-l1u0.bin",
+      "bytes": 10168,
+      "sha256": "8672461f27ce9117b9393188596756e3dab9eb1efbde0ee387f336dac0aed32e",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid0-l1u1.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid0-l1u1.bin",
+      "bytes": 10168,
+      "sha256": "0e36b74ce5e8e537fbd0a66d3bf175e9f07172f16398ee760847ef55cae8a1b3",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid0-l1u4.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid0-l1u4.bin",
+      "bytes": 10168,
+      "sha256": "4dd42a3df6051eb9a1dd595220982c1ea755a2063138503a66e624c4fdb2fc12",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid0-l1u5.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid0-l1u5.bin",
+      "bytes": 10168,
+      "sha256": "71e4fbc50917e8d9334c66dedf91ceb6dda483da551a6d782acc9e603a695f0a",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid0.wmfw",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid0.wmfw",
+      "bytes": 35804,
+      "sha256": "816853191b40050c31fbeba1c82aff3dab8ab69b30e82e5b9274b7f1d0c10eb6",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid1-l1u0.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid1-l1u0.bin",
+      "bytes": 10168,
+      "sha256": "4d363006504e4de4fce700778c9c099d64021c30555de331e7141e5e7ba082f5",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid1-l1u1.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid1-l1u1.bin",
+      "bytes": 10168,
+      "sha256": "d615e33fc750af6f16f3dde7760302a7328e178a579f4de47d01accb5c3ea7a1",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid1-l1u4.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid1-l1u4.bin",
+      "bytes": 10168,
+      "sha256": "76135657fccf271074247e7b7680639cb496a23a849529f2377d7f70130988de",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid1-l1u5.bin",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid1-l1u5.bin",
+      "bytes": 10168,
+      "sha256": "c9b79e9a333b0f923817b32acd8efec4bb1132f9ba449512b8f110fb7cc713c7",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid1.wmfw",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802-spkid1.wmfw",
+      "bytes": 35804,
+      "sha256": "816853191b40050c31fbeba1c82aff3dab8ab69b30e82e5b9274b7f1d0c10eb6",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
+    },
+    {
+      "source": "payload/assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802.wmfw",
+      "destination": "assets/hardware/firmware/cirrus/cs35l56-b0-dsp1-misc-17aa3802.wmfw",
+      "bytes": 35804,
+      "sha256": "816853191b40050c31fbeba1c82aff3dab8ab69b30e82e5b9274b7f1d0c10eb6",
+      "mode": 420,
+      "provided_by": "python3 02-drivers/audio/payload/scripts/stage-lenovo-tuning.py SOURCE, where SOURCE is this Yoga's xucsmeext_3802_fdl.inf_arm64_* driver store folder or the capture.ps1 private\\audio-firmware folder"
     }
   ],
   "links": [],

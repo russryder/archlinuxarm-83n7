@@ -7,6 +7,8 @@ build/
 H7607A-ACPI/
 /01-platform/acpi/payload/assets/hardware/acpi/h7607a-acpi.cpio
 /01-platform/acpi/payload/assets/hardware/uefi/n1x-dsdt-baseline.bin
+# Lenovo Cirrus firmware and tuning, staged from the owner's own Windows driver store.
+/02-drivers/audio/payload/assets/hardware/firmware/
 # Pinned inputs fetched with ./assemble.sh --fetch or published in the inputs-1 release.
 /01-platform/kernel/payload/assets/hardware/kernel/h7607a-kernel-runtime.tar.zst
 /02-drivers/nvidia-display/payload/assets/build-inputs/nvidia.ko.zst
