@@ -52,13 +52,18 @@ pacman -Q $holds   # unchanged versions prove the holds held
 
 echo "== 4/5 Plasma"
 pacman -S --noconfirm --needed \
-    plasma-desktop plasma-workspace kwin plasma-nm plasma-pa powerdevil kscreen bluedevil \
+    plasma-desktop plasma-workspace kwin plasma-nm plasma-pa powerdevil kscreen \
     kde-gtk-config breeze-gtk xdg-desktop-portal-kde systemsettings \
-    konsole dolphin kate ark spectacle gwenview \
-    sddm sddm-kcm \
-    pipewire pipewire-alsa pipewire-pulse wireplumber \
-    maliit-keyboard iio-sensor-proxy \
-    noto-fonts noto-fonts-emoji firefox sudo
+    konsole dolphin sddm sddm-kcm \
+    pipewire pipewire-alsa pipewire-pulse wireplumber sudo
+# Extras are installed when the ALARM repositories carry them (maliit-keyboard,
+# for one, is not built for aarch64; Plasma's own plasma-keyboard replaces it).
+extras=()
+for p in plasma-keyboard iio-sensor-proxy bluedevil kate ark spectacle gwenview \
+         noto-fonts noto-fonts-emoji firefox; do
+    if pacman -Si "$p" >/dev/null 2>&1; then extras+=("$p"); else echo "skipping unavailable $p"; fi
+done
+pacman -S --noconfirm --needed "${extras[@]}"
 # SDDM's greeter on Wayland (KWin), since no X server is installed.
 install -d /etc/sddm.conf.d
 cat > /etc/sddm.conf.d/10-wayland.conf <<'EOF'
