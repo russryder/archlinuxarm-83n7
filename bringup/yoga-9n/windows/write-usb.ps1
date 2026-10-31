@@ -20,10 +20,29 @@ param(
     [Parameter(Mandatory)][string]$SerialNumber,
     [Parameter(Mandatory)][long]$DiskBytes,
     [Parameter(Mandatory)][string]$Image,
-    [Parameter(Mandatory)][ValidatePattern('^[0-9a-f]{64}$')][string]$ImageSha256
+    [Parameter(Mandatory)][ValidatePattern('^[0-9a-f]{64}$')][string]$ImageSha256,
+    [string]$Log,
+    # Only read the stick back and compare it with the image; write nothing.
+    [switch]$VerifyOnly
 )
 $ErrorActionPreference = 'Stop'
-function Stop-Write([string]$message) { Write-Host "STOP: $message" -ForegroundColor Red; exit 1 }
+if ($Log) { Start-Transcript -LiteralPath $Log -Force | Out-Null }
+function Stop-Write([string]$message) {
+    Write-Host "STOP: $message" -ForegroundColor Red
+    if ($Log) { Stop-Transcript | Out-Null }
+    exit 1
+}
+
+# Keep the machine awake (not the display) while this process runs; the request
+# ends with the process, so no power setting is changed.
+Add-Type -Namespace Win32 -Name Power -MemberDefinition @'
+[DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint flags);
+'@
+$ES_CONTINUOUS = [uint32]2147483648; $ES_SYSTEM_REQUIRED = [uint32]1
+if (-not [Win32.Power]::SetThreadExecutionState($ES_CONTINUOUS -bor $ES_SYSTEM_REQUIRED)) {
+    Stop-Write 'could not ask Windows to stay awake'
+}
+Write-Host 'Sleep is blocked until this script ends.'
 
 $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
     [Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -42,13 +61,16 @@ Write-Host "Checking $($imageFile.FullName) ($([math]::Round($imageFile.Length /
 $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $imageFile.FullName).Hash.ToLower()
 if ($actual -ne $ImageSha256) { Stop-Write "image SHA-256 is $actual" }
 
+$chunk = 4MB
+$buffer = New-Object byte[] $chunk
+$device = "\\.\PhysicalDrive$DiskNumber"
+if ($VerifyOnly) {
+    Write-Host "Target: disk $DiskNumber $($disk.FriendlyName), serial $SerialNumber, $DiskBytes bytes. Verifying only."
+} else {
 Write-Host "Target: disk $DiskNumber $($disk.FriendlyName), serial $SerialNumber, $DiskBytes bytes. Removing its partitions."
 if ($disk.PartitionStyle -ne 'RAW') { Clear-Disk -Number $DiskNumber -RemoveData -RemoveOEM -Confirm:$false }
 Set-Disk -Number $DiskNumber -IsReadOnly $false
 
-$chunk = 4MB
-$buffer = New-Object byte[] $chunk
-$device = "\\.\PhysicalDrive$DiskNumber"
 $source = [IO.File]::OpenRead($imageFile.FullName)
 $target = New-Object IO.FileStream($device, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::ReadWrite, $chunk, [IO.FileOptions]::WriteThrough)
 try {
@@ -67,6 +89,7 @@ try {
     $source.Dispose()
     $target.Dispose()
 }
+}
 
 Write-Host 'Reading the stick back'
 $sha = [Security.Cryptography.SHA256]::Create()
@@ -74,7 +97,7 @@ $reader = New-Object IO.FileStream($device, [IO.FileMode]::Open, [IO.FileAccess]
 try {
     $remaining = $imageFile.Length
     while ($remaining -gt 0) {
-        $want = [int][math]::Min($chunk, $remaining)
+        $want = [int][math]::Min([long]$chunk, [long]$remaining)
         $got = $reader.Read($buffer, 0, $want)
         if ($got -le 0) { Stop-Write 'short read from the stick' }
         [void]$sha.TransformBlock($buffer, 0, $got, $null, 0)
@@ -88,3 +111,5 @@ $readback = ([BitConverter]::ToString($sha.Hash) -replace '-', '').ToLower()
 Update-Disk -Number $DiskNumber
 if ($readback -ne $ImageSha256) { Stop-Write "read-back SHA-256 is $readback" }
 Write-Host "Done: the stick holds the image (SHA-256 $readback). Eject it before removing." -ForegroundColor Green
+[void][Win32.Power]::SetThreadExecutionState($ES_CONTINUOUS)
+if ($Log) { Stop-Transcript | Out-Null }
