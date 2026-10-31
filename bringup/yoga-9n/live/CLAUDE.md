@@ -13,11 +13,15 @@ through files on the stick's ESP (see "Reporting").
 
 ## Safety rules (non-negotiable)
 
-1. **Never write to the internal SSD.** It is the laptop's only disk and holds
-   Windows (`/dev/nvme0n1`: ESP 450 MB, MSR, BitLocker-encrypted C:, Recovery).
-   Do not partition, format, mount read-write, `fsck`, `wipefs`, TRIM or
-   `dd` it, and do not run the installer (`archinstall`). Reading
-   `lsblk`/`blkid` output is fine.
+1. **Do not write to the internal SSD without Russ's explicit permission.** It
+   is the laptop's only disk and holds Windows (`/dev/nvme0n1`: ESP 450 MB,
+   MSR, BitLocker-encrypted C:, Recovery). Without a clear go-ahead from Russ
+   in this session for the specific action, do not partition, format, mount
+   read-write, `fsck`, `wipefs`, TRIM or `dd` it, and do not run the installer
+   (`archinstall`). When he does ask for SSD work (for example a dual-boot
+   install into space he freed from Windows), state exactly which device and
+   partitions will change, confirm once, then proceed. Reading
+   `lsblk`/`blkid`/`smartctl` output is always fine.
 2. **No firmware or boot-order changes.** No `efibootmgr` writes, no EFI
    variable writes, no `fwupd` updates. The ACPI override is pinned to
    SDCN77WW.
