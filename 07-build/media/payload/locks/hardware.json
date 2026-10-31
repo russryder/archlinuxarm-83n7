@@ -4,12 +4,13 @@
   "NVIDIA_version": "615.78.08",
   "kernel_sha256": "6312b1ab41f586a42a1767e771c7cfc787246e0b83fe708006fff10903768d86",
   "device": {
-    "sys_vendor": "ASUS",
-    "product_name": "ProArt P16 H7607BA",
-    "board_vendor": "ASUSTeK COMPUTER INC.",
-    "board_name": "H7607BA",
-    "bios_version": "H7607BA.300",
-    "bios_date": "08/11/2026"
+    "sys_vendor": "LENOVO",
+    "product_name": "83N7",
+    "product_version": "Yoga 9 2-in-1 16N1X11",
+    "board_vendor": "LENOVO",
+    "board_name": "LNVNB161216",
+    "bios_version": "SDCN77WW",
+    "bios_date": "09/23/2026"
   },
   "artifacts": [
     {
@@ -116,12 +117,12 @@
       "mode": 420
     },
     {
-      "id": "acpi-sspm-asus-power",
+      "id": "acpi-sspm",
       "path": "assets/hardware/acpi/h7607a-acpi.cpio",
-      "bytes": 109568,
-      "sha256": "311dc5b456f1b7a9728814cd8ca105370bdca8383facec141f23217f43eac51d",
+      "bytes": 311808,
+      "sha256": "812820d208d01e22b7604d7ad70dbec704b7f9b46a97c77324f6b849418b5488",
       "urls": [],
-      "origin": "Built on the owner's machine by provenance/hardware/power-archive-builder.py from that P16's own firmware tables; not stored in this repository",
+      "origin": "Built on the owner's machine by provenance/hardware/power-archive-builder.py from that Yoga's own SDCN77WW DSDT; not stored in this repository",
       "license": "Device firmware with local compatibility modifications; built locally for this owned device; redistribution not asserted",
       "boot": "h7607a-acpi.cpio"
     },
@@ -136,40 +137,13 @@
       "boot": "EFI/H7607A/Shell.efi"
     },
     {
-      "id": "n1x-dsdt-guard.efi",
-      "path": "assets/hardware/uefi/n1x-dsdt-guard.efi",
-      "bytes": 6656,
-      "sha256": "7e69518dbbfd33912b9d65bd9349c7340da1f4959f00d1c39dcc9efc60e58ea3",
-      "urls": [],
-      "origin": "Included local artifact at assets/hardware/uefi/n1x-dsdt-guard.efi; source/build evidence under provenance/hardware",
-      "license": "See original source notice"
-    },
-    {
-      "id": "n1x-asus-ssdt-guard.efi",
-      "path": "assets/hardware/uefi/n1x-asus-ssdt-guard.efi",
-      "bytes": 6656,
-      "sha256": "1cbf6bee9129e45afbbe0c25de635a5a53802cbf000b324e45eaaa7a7bee6050",
-      "urls": [],
-      "origin": "Included local artifact at assets/hardware/uefi/n1x-asus-ssdt-guard.efi; source/build evidence under provenance/hardware",
-      "license": "See original source notice"
-    },
-    {
       "id": "n1x-dsdt-baseline.bin",
       "path": "assets/hardware/uefi/n1x-dsdt-baseline.bin",
-      "bytes": 74052,
-      "sha256": "0b9ed92671568cf36bade16262d068d1a4f3c85634159de46ae00bf0f727a402",
+      "bytes": 310717,
+      "sha256": "365db468ba36b20b8d972c9531259c6704e8eb04f7bf8d75cad08474f7fde868",
       "urls": [],
-      "origin": "Dumped by the owner from that P16's firmware and copied here by provenance/hardware/power-archive-builder.py; not stored in this repository",
-      "license": "Device firmware ACPI table (OEM ID NVDA); dumped locally from this owned device; redistribution not asserted"
-    },
-    {
-      "id": "n1x-asus-ssdt-baseline.bin",
-      "path": "assets/hardware/uefi/n1x-asus-ssdt-baseline.bin",
-      "bytes": 34278,
-      "sha256": "46d9ed16af06093cdb849df69646683317d53d7342dfd38f24eab00795d396f0",
-      "urls": [],
-      "origin": "Dumped by the owner from that P16's firmware and copied here by provenance/hardware/power-archive-builder.py; not stored in this repository",
-      "license": "Device firmware ACPI table (OEM ID _ASUS_); dumped locally from this owned device; redistribution not asserted"
+      "origin": "Dumped by the owner from that Yoga's SDCN77WW firmware and copied here by provenance/hardware/power-archive-builder.py; not stored in this repository",
+      "license": "Device firmware ACPI table (OEM ID LENOVO); dumped locally from this owned device; redistribution not asserted"
     },
     {
       "id": "acpi-dump-script",
@@ -189,15 +163,6 @@
       "origin": "Included local artifact at assets/hardware/uefi/edk2-license.txt; source/build evidence under provenance/hardware",
       "license": "See original source notice",
       "boot": "edk2-license.txt"
-    },
-    {
-      "id": "guard-license.txt",
-      "path": "assets/hardware/uefi/guard-license.txt",
-      "bytes": 1082,
-      "sha256": "b890be482308c5f77ed80c11a6803a7276ad99d731a93133237e36ff3889d901",
-      "urls": [],
-      "origin": "Included local artifact at assets/hardware/uefi/guard-license.txt; source/build evidence under provenance/hardware",
-      "license": "See original source notice"
     },
     {
       "id": "provenance-drm-build.json",
@@ -292,8 +257,8 @@
     {
       "id": "provenance-sspm-patch.json",
       "path": "provenance/hardware/sspm-patch.json",
-      "bytes": 1686,
-      "sha256": "42616270e79331f2ff89b952251daa43807105fc9139b15d1f29e262b7634d0d",
+      "bytes": 1776,
+      "sha256": "c2dce6b17e6f871a83adb7afa46438cbfe721c679e649d08d5bb291b74cf3f7b",
       "urls": [],
       "origin": "Included local artifact at provenance/hardware/sspm-patch.json; source/build evidence under provenance/hardware",
       "license": "See original source notice"
@@ -301,53 +266,17 @@
     {
       "id": "provenance-sspm-builder.py",
       "path": "provenance/hardware/sspm-builder.py",
-      "bytes": 182,
-      "sha256": "d964bb19e16e8df0d4bb51ca1c58d0e91e17dacebae298ac48ad87d66775ae7f",
+      "bytes": 201,
+      "sha256": "d4c66a11ac513bf143529cf6f364e0aa84f19e1f492b7f06f6de10789c98f500",
       "urls": [],
       "origin": "Included local artifact at provenance/hardware/sspm-builder.py; source/build evidence under provenance/hardware",
       "license": "See original source notice"
     },
     {
-      "id": "provenance-power-method-changes.json",
-      "path": "provenance/hardware/power-method-changes.json",
-      "bytes": 2026,
-      "sha256": "8b779dff3de70d8a35c16629e7130c3748dbea52a2d652e6de17bde2cd571a01",
-      "urls": [],
-      "origin": "Included local artifact at provenance/hardware/power-method-changes.json; source/build evidence under provenance/hardware",
-      "license": "See original source notice"
-    },
-    {
-      "id": "provenance-power-splice.json",
-      "path": "provenance/hardware/power-splice.json",
-      "bytes": 3793,
-      "sha256": "a08e3d91b99fbfed7b2497dca49f24a531c93d28565a496825f3e2df46fb361c",
-      "urls": [],
-      "origin": "Included local artifact at provenance/hardware/power-splice.json; source/build evidence under provenance/hardware",
-      "license": "See original source notice"
-    },
-    {
-      "id": "provenance-power-source.dsl",
-      "path": "provenance/hardware/power-source.dsl",
-      "bytes": 241833,
-      "sha256": "cff6e8be5665686c95bd83b5e2d73ed0abbacddecc416e57dbd29f91a746472a",
-      "urls": [],
-      "origin": "Derived on the owner's machine by provenance/hardware/power-archive-builder.py from the iasl 20260408 disassembly of that P16's ASUS SSDT and power-source.sed; not stored in this repository",
-      "license": "Disassembly of the device firmware ASUS SSDT with local edits; derived locally for this owned device; redistribution not asserted"
-    },
-    {
-      "id": "provenance-power-source.sed",
-      "path": "provenance/hardware/power-source.sed",
-      "bytes": 839,
-      "sha256": "7c9a16b19cb86488bbdb73da4d88a775a763908abb70291806250cd6d97bdd19",
-      "urls": [],
-      "origin": "Repository source; acpi_builder.py applies it to the iasl -d disassembly of the owner's ASUS SSDT",
-      "license": "MIT"
-    },
-    {
       "id": "provenance-power-archive-builder.py",
       "path": "provenance/hardware/power-archive-builder.py",
       "bytes": 162,
-      "sha256": "3457be1bfb4e77c11725c4325901bcf089e0e7e7ba3a943007e1b68edc9d9f96",
+      "sha256": "165ccf2a1074842ead75fb58cb74d251adae4156f0a98923960524615aa51f93",
       "urls": [],
       "origin": "Included local artifact at provenance/hardware/power-archive-builder.py; source/build evidence under provenance/hardware",
       "license": "See original source notice"
@@ -355,46 +284,10 @@
     {
       "id": "provenance-power-archive.json",
       "path": "provenance/hardware/power-archive.json",
-      "bytes": 2862,
-      "sha256": "5b81c083703feac3f4f86f0ad80e9862ffdac26625c57de113919ae28f67ae37",
+      "bytes": 1712,
+      "sha256": "81806655367df427c160b8504f744e182a1c02ecf1470f17b3b9746f3e1dc22b",
       "urls": [],
       "origin": "Included local artifact at provenance/hardware/power-archive.json; source/build evidence under provenance/hardware",
-      "license": "See original source notice"
-    },
-    {
-      "id": "provenance-dsdt-guard.c",
-      "path": "provenance/hardware/dsdt-guard.c",
-      "bytes": 6827,
-      "sha256": "1cdac261e1785797bfa20af45232a1b923537dfd924bb6a9fc8f24db0c6c3905",
-      "urls": [],
-      "origin": "Included local artifact at provenance/hardware/dsdt-guard.c; source/build evidence under provenance/hardware",
-      "license": "See original source notice"
-    },
-    {
-      "id": "provenance-dsdt-guard-build.json",
-      "path": "provenance/hardware/dsdt-guard-build.json",
-      "bytes": 3085,
-      "sha256": "46bedcc94f2a05b2987627da5ac8f49c04188ac9a04f89a8068a14b7a47e4f4d",
-      "urls": [],
-      "origin": "Included local artifact at provenance/hardware/dsdt-guard-build.json; source/build evidence under provenance/hardware",
-      "license": "See original source notice"
-    },
-    {
-      "id": "provenance-ssdt-guard.c",
-      "path": "provenance/hardware/ssdt-guard.c",
-      "bytes": 6847,
-      "sha256": "2909970f31436ce892ff8a8f3122f10e673b0e7570debbffc932a168bcf361f3",
-      "urls": [],
-      "origin": "Included local artifact at provenance/hardware/ssdt-guard.c; source/build evidence under provenance/hardware",
-      "license": "See original source notice"
-    },
-    {
-      "id": "provenance-ssdt-guard-build.json",
-      "path": "provenance/hardware/ssdt-guard-build.json",
-      "bytes": 3152,
-      "sha256": "2003d471169b908cc34a8a77e481a80ef8c7773659f4ee97346691c920f08be5",
-      "urls": [],
-      "origin": "Included local artifact at provenance/hardware/ssdt-guard-build.json; source/build evidence under provenance/hardware",
       "license": "See original source notice"
     },
     {
@@ -901,8 +794,8 @@
     {
       "id": "provenance-acpi-builder",
       "path": "provenance/hardware/acpi_builder.py",
-      "bytes": 16378,
-      "sha256": "14f276c97000dafdd51bc7af948d7b87aecc673df2d399ce14dbbbfb70e20c07",
+      "bytes": 12184,
+      "sha256": "eae982f94552945bcc7d2b472a853edaa3e3384300c077b8a35427839cc9d968",
       "urls": []
     }
   ],

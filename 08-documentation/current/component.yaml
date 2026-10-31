@@ -15,8 +15,8 @@
     {
       "source": "payload/.gitignore",
       "destination": ".gitignore",
-      "bytes": 218,
-      "sha256": "f8436f2255becb80d8646e3310823dace6b257189fc76bbb6586052f44a774ad",
+      "bytes": 131,
+      "sha256": "720c608d0fdb85d270c398add60b5bc8176bb7f45e2abad95003bfe1a2d23667",
       "mode": 420
     },
     {

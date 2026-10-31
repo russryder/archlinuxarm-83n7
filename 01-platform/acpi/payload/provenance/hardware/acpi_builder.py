@@ -1,57 +1,54 @@
 #!/usr/bin/env python3
-"""Build the H7607BA.300 ACPI overrides from this P16's own firmware tables.
+"""Build the SDCN77WW ACPI override from this Yoga 9n's own DSDT.
 
 No firmware table, nor anything derived from one, is distributed. Dump the
-DSDT and SSDTs of your own P16 into a directory and pass it as --dump:
+DSDT of your own Lenovo Yoga 9 2-in-1 16N1X11 (machine type 83N7) into a
+directory and pass it as --dump. Any of these works:
+
+  Windows on the Yoga: bringup/yoga-9n/windows/capture.ps1 writes
+  private\\acpi\\DSDT.bin and private\\acpi-registry\\; pass either folder.
+
+  Linux booted without h7607a-acpi.cpio:
+    mkdir DIR
+    sudo cat /sys/firmware/acpi/tables/DSDT > DIR/DSDT
 
   UEFI: scripts/stage-acpi-dump.py stages the EDK2 Shell and a dump script on
-  a mounted FAT32 stick. Boot the P16 from it with Secure Boot disabled; the
-  tables land in the stick's H7607A-ACPI folder.
+  a mounted FAT32 stick; the tables land in its H7607A-ACPI folder.
 
-  Linux booted without h7607a-acpi.cpio, such as another distribution's live
-  system on this P16:
-    mkdir DIR
-    for table in /sys/firmware/acpi/tables/DSDT /sys/firmware/acpi/tables/SSDT*; do
-        sudo cat "$table" | tee "DIR/${table##*/}" > /dev/null
-    done
+The DSDT must be that of BIOS SDCN77WW. Five devices in this firmware use the
+same _STA gate, If (_OSI ("Windows 2022")) { Return (0) } Else { Return (0x0F) },
+which hides them from Windows and, since Linux also answers true to that _OSI
+string, from Linux. Only \\_SB.SSPM (NVDA8400, the N1X power device) is
+enabled: its predicate becomes Zero, padded with Noop so no length changes.
+SSPM is located by walking the AML to the Device whose _HID is NVDA8400 and
+then its _STA, not by offset or by searching for the predicate string, which
+occurs three times. The other gated devices are reported and left alone.
 
-The DSDT and the ASUS SSDT (OEM ID _ASUS_, table ID ASUSSSDT) must be those of
-firmware H7607BA.300. power-source.dsl is that SSDT disassembled by ACPICA iasl
-20260408 and edited by power-source.sed. SSPM changes only its _STA predicate,
-and six compiled ASUS methods are spliced into the original SSDT, since
-compiling the whole table would rewrite unrelated AML. The two tables, the ASL
-and the archive are written to their collection paths once every pinned hash
-matches.
+The Lenovo EC methods (SSDT LfcECCom: RECM, WECM, CECB, RWEC) already keep
+their FF-A buffers in named objects, so the ASUS-style SSDT repair of the
+ProArt P16 port is not needed and no SSDT is overridden.
 """
 import argparse
 import hashlib
 import json
-import os
 from pathlib import Path
-import re
-import shutil
 import stat
 import struct
-import subprocess
-import tempfile
 
 REPO = Path(__file__).resolve().parents[2]
-FIRMWARE = "H7607BA.300"
-DSDT_INPUT = "0b9ed92671568cf36bade16262d068d1a4f3c85634159de46ae00bf0f727a402"
-SSDT_INPUT = "46d9ed16af06093cdb849df69646683317d53d7342dfd38f24eab00795d396f0"
-ASL_INPUT = "cff6e8be5665686c95bd83b5e2d73ed0abbacddecc416e57dbd29f91a746472a"
-DSDT_OUTPUT = "80e0ad4a051704003d09029cb600a9814e1cd370ce774b9749dc09d2232b5aaf"
-SSDT_OUTPUT = "9b28ffc14c19f8b7ea2278de88ff9ec070f5f70401107d81fef067a916aa9695"
-ARCHIVE_OUTPUT = "311dc5b456f1b7a9728814cd8ca105370bdca8383facec141f23217f43eac51d"
-METHODS = ("RRA9", "RRA8", "WRA9", "WRA8", "RWEC", "GBST")
-ASUS_SSDT = b"_ASUS_ASUSSSDT"
+FIRMWARE = "SDCN77WW"
+OEM = b"LENOVOCB-01   "
+OEM_REVISION = 4
+DSDT_INPUT = "365db468ba36b20b8d972c9531259c6704e8eb04f7bf8d75cad08474f7fde868"
+DSDT_OUTPUT = "06b53baf4f1b46b645579678ca2e28bd7536dd19e34fe7394d3726bd1e444f52"
+ARCHIVE_OUTPUT = "812820d208d01e22b7604d7ad70dbec704b7f9b46a97c77324f6b849418b5488"
+TARGET_HID = b"NVDA8400"
+PREDICATE = b"_OSI\x0dWindows 2022\x00"
+# Method (_STA, 0) { If (_OSI ("Windows 2022")) { Return (Zero) } Else { Return (0x0F) } }
+GATED_STA = (b"\x14\x21_STA\x00" b"\xa0\x15" + PREDICATE + b"\xa4\x00" b"\xa1\x04\xa4\x0a\x0f")
+PATCHED_STA = GATED_STA.replace(PREDICATE, b"\x00" + b"\xa3" * (len(PREDICATE) - 1))
 DSDT_PATH = "assets/hardware/uefi/n1x-dsdt-baseline.bin"
-SSDT_PATH = "assets/hardware/uefi/n1x-asus-ssdt-baseline.bin"
-ASL_PATH = "provenance/hardware/power-source.dsl"
 ARCHIVE_PATH = "assets/hardware/acpi/h7607a-acpi.cpio"
-IASL_SOURCE = ("https://github.com/acpica/acpica/releases/download/20260408/acpica-unix-20260408.tar.gz "
-               "(SHA-256 e66ceb26d6d514ce164fe22f5a4f7ca165cc38349d7a97f41a21f19b364647a2)")
-EDIT = re.compile(r"(\d+)(?:,(\d+))?s/([^/]+)/([^/]*)/(g?)")
 
 
 def require(condition, message):
@@ -87,80 +84,98 @@ def pkg_length(data, offset):
     return length, following + 1
 
 
-def encode_length(length, width):
-    require(1 <= width <= 4, "Invalid AML length width")
-    require(0 <= length < (1 << (6 if width == 1 else 4 + 8 * (width - 1))),
-            "New AML package length changes its encoded width")
-    if width == 1:
-        return bytes([length])
-    return bytes([((width - 1) << 6) | (length & 15)] +
-                 [(length >> (4 + i * 8)) & 255 for i in range(width - 1)])
+def name_at(data, offset):
+    """Return (NameString bytes, size) for the AML name starting at offset."""
+    start = offset
+    while data[offset] in b"\\^":
+        offset += 1
+    if data[offset] == 0x2e:  # DualNamePrefix
+        offset += 9
+    elif data[offset] == 0x2f:  # MultiNamePrefix
+        offset += 2 + 4 * data[offset + 1]
+    elif data[offset] == 0x00:  # NullName
+        offset += 1
+    else:
+        offset += 4
+    return data[start:offset], offset - start
+
+
+def objects(data, kind, start=36, end=None):
+    """Yield (offset, end, name) for each Device (kind b"\\x5b\\x82") or Method (b"\\x14") whose
+    package parses inside [start, end). Matches are filtered by structure, not trusted blindly."""
+    end = len(data) if end is None else end
+    offset = data.find(kind, start, end)
+    while offset != -1:
+        body = offset + len(kind)
+        try:
+            length, width = pkg_length(data, body)
+            name, size = name_at(data, body + width)
+        except (ValueError, IndexError):
+            name = None
+        stop = body + length if name is not None else 0
+        if name is not None and offset < stop <= end and len(name) >= 4 and \
+                all(c in b"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_\\^." or c in (0x2e, 0x2f) for c in name):
+            yield offset, stop, name
+        offset = data.find(kind, offset + 1, end)
+
+
+def gated_devices(dsdt):
+    """Return [(device name, _HID, _STA offset)] for every device whose _STA is the Windows 2022 gate."""
+    found, devices = [], None
+    at = dsdt.find(GATED_STA)
+    while at != -1:
+        if devices is None:
+            devices = list(objects(dsdt, b"\x5b\x82"))
+        owners = [(offset, stop, name) for offset, stop, name in devices if offset < at < stop]
+        require(owners, f"Gated _STA at 0x{at:x} is not inside a Device")
+        offset, stop, name = max(owners)  # innermost: the latest start that still encloses it
+        found.append((name[-4:].decode("ascii"), device_hid(dsdt, offset, stop), at))
+        at = dsdt.find(GATED_STA, at + 1)
+    return found
+
+
+def device_hid(dsdt, start, stop):
+    at = dsdt.find(b"\x08_HID", start, stop)
+    if at == -1:
+        return None
+    if dsdt[at + 5] == 0x0d:
+        return dsdt[at + 6:dsdt.index(b"\x00", at + 6)].decode("ascii")
+    if dsdt[at + 5] == 0x0c:  # EISA ID DWord
+        return "EISA:" + dsdt[at + 6:at + 10].hex()
+    return None
+
+
+def sspm_sta(dsdt):
+    """Return the offset of SSPM's gated _STA, found through the device holding _HID NVDA8400."""
+    hid = b"\x08_HID\x0d" + TARGET_HID + b"\x00"
+    devices = []
+    for offset, stop, name in objects(dsdt, b"\x5b\x82"):
+        if dsdt.find(hid, offset, stop) != -1:
+            inner = [d for d in objects(dsdt, b"\x5b\x82", offset + 2, stop)]
+            if not any(dsdt.find(hid, a, b) != -1 for a, b, _ in inner):
+                devices.append((offset, stop, name))
+    require(len(devices) == 1, f"Expected one Device with _HID {TARGET_HID.decode()}, found {len(devices)}")
+    offset, stop, name = devices[0]
+    require(name.endswith(b"SSPM"), f"The {TARGET_HID.decode()} device is {name!r}, not SSPM")
+    methods = [m for m in objects(dsdt, b"\x14", offset, stop) if m[2] == b"_STA"]
+    require(len(methods) == 1, f"Expected one _STA in SSPM, found {len(methods)}")
+    at = methods[0][0]
+    require(dsdt[at:at + len(GATED_STA)] == GATED_STA,
+            "SSPM._STA is not the expected Windows 2022 gate; this firmware differs from " + FIRMWARE)
+    return at
 
 
 def patch_dsdt(original):
     exact(original, DSDT_INPUT, "Firmware DSDT")
-    table(original, b"DSDT", b"NVDA\0\0ANGUS   ", 4)
-    start = 0x10269
-    predicate = b"_OSI\x0dWindows 2022\0"
-    require(original[start:start + len(predicate)] == predicate, "SSPM predicate changed")
+    table(original, b"DSDT", OEM, OEM_REVISION)
+    at = sspm_sta(original)
     modified = bytearray(original)
-    modified[start:start + len(predicate)] = b"\0" + b"\xa3" * (len(predicate) - 1)
-    struct.pack_into("<I", modified, 24, 5)
+    modified[at:at + len(GATED_STA)] = PATCHED_STA
+    struct.pack_into("<I", modified, 24, OEM_REVISION + 1)
     modified[9] = 0
     modified[9] = -sum(modified) % 256
-    table(modified, b"DSDT", b"NVDA\0\0ANGUS   ", 5)
+    table(modified, b"DSDT", OEM, OEM_REVISION + 1)
     return exact(bytes(modified), DSDT_OUTPUT, "SSPM override")
-
-
-def compiled_method(compiled, name, digest):
-    matches = []
-    for offset in range(36, len(compiled) - 6):
-        if compiled[offset] != 0x14:
-            continue
-        length, width = pkg_length(compiled, offset + 1)
-        name_start = offset + 1 + width
-        if compiled[name_start:name_start + 4] == name.encode("ascii"):
-            end = offset + 1 + length
-            require(end <= len(compiled), f"Truncated {name} method")
-            matches.append(compiled[offset:end])
-    require(len(matches) == 1, f"Expected exactly one compiled {name} method")
-    return exact(matches[0], digest, f"Compiled {name} method")
-
-
-def splice_ssdt(original, compiled, specification):
-    exact(original, SSDT_INPUT, "Firmware ASUS SSDT")
-    table(original, b"SSDT", b"_ASUS_ASUSSSDT", 1)
-    require(tuple(row["method"] for row in specification["methods"]) == METHODS,
-            "Unexpected ASUS method selection")
-    patches = []
-    for row in specification["methods"]:
-        start, end = row["original_start"], row["original_end"]
-        exact(original[start:end], row["original_sha256"], f"Original {row['method']} method")
-        replacement = compiled_method(compiled, row["method"], row["replacement_sha256"])
-        require(len(replacement) == row["new_bytes"], "Changed method length")
-        patches.append((start, end, replacement))
-    for row in specification["containers"]:
-        for kind, opcode in (("scope", b"\x10"), ("device", b"\x5b\x82")):
-            start, end = row[f"{kind}_start"], row[f"{kind}_end"]
-            require(original[start:start + len(opcode)] == opcode, "Wrong enclosing AML object")
-            offset = start + len(opcode)
-            old_length, width = pkg_length(original, offset)
-            require(offset + old_length == end, "Wrong enclosing AML extent")
-            delta = sum(len(data) - (b - a) for a, b, data in patches if start <= a < b <= end)
-            require(delta == row["scope_added_bytes"], "Wrong enclosing AML length adjustment")
-            patches.append((offset, offset + width, encode_length(old_length + delta, width)))
-    modified = bytearray(original)
-    last_start = len(original)
-    for start, end, data in sorted(patches, reverse=True):
-        require(36 <= start < end <= last_start, "Overlapping AML replacements")
-        modified[start:end] = data
-        last_start = start
-    struct.pack_into("<I", modified, 4, len(modified))
-    struct.pack_into("<I", modified, 24, 2)
-    modified[9] = 0
-    modified[9] = -sum(modified) % 256
-    table(modified, b"SSDT", b"_ASUS_ASUSSSDT", 2)
-    return exact(bytes(modified), SSDT_OUTPUT, "ASUS power override")
 
 
 def member(name, data, mode, inode):
@@ -173,113 +188,49 @@ def member(name, data, mode, inode):
     return entry + bytes(-len(entry) % 4)
 
 
-def archive(dsdt, ssdt):
+def archive(dsdt):
     exact(dsdt, DSDT_OUTPUT, "SSPM override")
-    exact(ssdt, SSDT_OUTPUT, "ASUS power override")
     result = b"".join(member(name, b"", stat.S_IFDIR | 0o755, inode)
                       for inode, name in enumerate(("kernel", "kernel/firmware", "kernel/firmware/acpi"), 1))
     result += member("kernel/firmware/acpi/DSDT.aml", dsdt, stat.S_IFREG | 0o644, 4)
-    result += member("kernel/firmware/acpi/SSDT.aml", ssdt, stat.S_IFREG | 0o644, 5)
-    result += member("TRAILER!!!", b"", 0, 6)
+    result += member("TRAILER!!!", b"", 0, 5)
     result += bytes(-len(result) % 512)
     return exact(result, ARCHIVE_OUTPUT, "Production ACPI archive")
 
 
-def dumped_tables(dump):
-    """Map b"DSDT" and b"SSDT" to {table: [file names]} for the DSDT and ASUS SSDT dumps in dump."""
+def dumped_dsdt(dump):
+    """Return (file name, data) of the single distinct DSDT in dump."""
     dump = Path(dump)
     require(dump.is_dir(), f"{dump} is not a directory")
-    found = {b"DSDT": {}, b"SSDT": {}}
+    found = {}
     for path in sorted(dump.iterdir()):
         if not path.is_file():
             continue
         with path.open("rb") as stream:
-            head = stream.read(24)
-        if head[:4] not in found or head[:4] == b"SSDT" and head[10:24] != ASUS_SSDT:
+            head = stream.read(4)
+        if head != b"DSDT":
             continue
         data = path.read_bytes()
         require(len(data) >= 36 and struct.unpack_from("<I", data, 4)[0] == len(data),
                 f"{path.name} does not hold exactly one table; delete old dumps and dump again")
         require(sum(data) % 256 == 0, f"{path.name} has an invalid ACPI checksum; dump again")
-        found[head[:4]].setdefault(data, []).append(path.name)
-    return found
-
-
-def dumped(found, signature, description, dump):
-    tables = found[signature]
-    require(tables, f"No {description} dump in {dump}; pass the H7607A-ACPI folder of the dump stick "
-            "or a copy of /sys/firmware/acpi/tables")
-    require(len(tables) == 1, f"Different {description} dumps in {dump}: " +
-            ", ".join(sorted(name for names in tables.values() for name in names)))
-    data, names = next(iter(tables.items()))
+        found.setdefault(data, []).append(path.name)
+    require(found, f"No DSDT dump in {dump}; pass a folder holding this Yoga's DSDT "
+            "(capture.ps1 private\\acpi, or a copy of /sys/firmware/acpi/tables/DSDT)")
+    require(len(found) == 1, f"Different DSDT dumps in {dump}: " +
+            ", ".join(sorted(name for names in found.values() for name in names)))
+    data, names = next(iter(found.items()))
     return names[0], data
 
 
-def firmware(name, data, expected, override, description):
+def firmware(name, data):
     digest = sha(data)
-    require(digest != override,
-            f"{name} is the {description} from h7607a-acpi.cpio, not the firmware's; dump it with "
-            "the UEFI Shell kit or from a Linux booted without that archive")
-    require(digest == expected,
-            f"{name} is not the {description} of firmware {FIRMWARE} (SHA-256 {digest}); "
-            f"these overrides are only for BIOS {FIRMWARE}")
-
-
-def commands(script):
-    """Parse power-source.sed into (script line, first, last, old, new, global) tuples."""
-    result = []
-    for number, line in enumerate(script.split("\n"), 1):
-        if not line or line.startswith("#"):
-            continue
-        match = EDIT.fullmatch(line)
-        # Characters with a meaning in sed patterns or replacements would make sed disagree.
-        require(match is not None and not set(match[3] + match[4]) & set(".*[]\\^$&"),
-                f"power-source.sed line {number} is not a literal s command")
-        result.append((number, int(match[1]), int(match[2] or match[1]), match[3], match[4], bool(match[5])))
-    return result
-
-
-def edit(text, script):
-    """Apply power-source.sed to text as sed -f would."""
-    lines = text.split("\n")
-    count = len(lines) - (lines[-1] == "")
-    for number, first, last, old, new, every in commands(script):
-        require(1 <= first <= last <= count, f"power-source.sed line {number} addresses lines outside the ASL")
-        changed = False
-        for index in range(first - 1, last):
-            if old in lines[index]:
-                lines[index] = lines[index].replace(old, new, -1 if every else 1)
-                changed = True
-        require(changed, f"power-source.sed line {number} does not apply")
-    return "\n".join(lines)
-
-
-def run_iasl(iasl, arguments, work):
-    result = subprocess.run([iasl, *arguments], cwd=work, capture_output=True, text=True, errors="replace")
-    output = (result.stdout + result.stderr).strip()
-    require(result.returncode == 0, f"{iasl} {' '.join(arguments)} failed:\n{output[-2000:]}")
-    return output
-
-
-def check_iasl(iasl, work):
-    """Return the absolute path of iasl, which runs from the work directory, once it is 20260408."""
-    located = shutil.which(iasl)
-    require(located is not None, f"{iasl} was not found; build ACPICA iasl 20260408 from {IASL_SOURCE}")
-    located = os.path.abspath(located)
-    require(re.search(r"version 20260408\b", run_iasl(located, ["-v"], work)) is not None,
-            f"{iasl} is not ACPICA iasl 20260408; build it from {IASL_SOURCE}")
-    return located
-
-
-def derive_asl(ssdt, script, iasl, work):
-    # The disassembly header names its input file, and the pinned ASL came from SSDT0001.bin.
-    (work / "SSDT0001.bin").write_bytes(ssdt)
-    run_iasl(iasl, ["-d", "SSDT0001.bin"], work)
-    asl = edit((work / "SSDT0001.dsl").read_bytes().decode("latin-1"), script).encode("latin-1")
-    require(sha(asl) == ASL_INPUT,
-            f"power-source.dsl derived with {iasl} has SHA-256 {sha(asl)}, not {ASL_INPUT}; "
-            "it needs a 64-bit build of ACPICA iasl 20260408")
-    return asl
+    require(digest != DSDT_OUTPUT,
+            f"{name} is the DSDT from h7607a-acpi.cpio, not the firmware's; dump it from Windows or "
+            "from a Linux booted without that archive")
+    require(digest == DSDT_INPUT,
+            f"{name} is not the DSDT of BIOS {FIRMWARE} (SHA-256 {digest}); "
+            f"this override is only for BIOS {FIRMWARE}")
 
 
 def publish(repo, files):
@@ -309,47 +260,26 @@ def pins(files):
     return {name: {"bytes": len(data), "sha256": sha(data)} for name, data in files.items()}
 
 
-def build(dump, *, repo=REPO, iasl="iasl", sspm_only=False):
+def build(dump, *, repo=REPO, check_only=False):
     repo = Path(repo).resolve()
-    found = dumped_tables(dump)
-    dsdt_name, dsdt = dumped(found, b"DSDT", "DSDT", dump)
-    firmware(dsdt_name, dsdt, DSDT_INPUT, DSDT_OUTPUT, "DSDT")
-    overrides = {"DSDT.aml": patch_dsdt(dsdt)}
-    files = {DSDT_PATH: dsdt}
-    names = {"DSDT": dsdt_name}
-    compiler = None
-    if not sspm_only:
-        ssdt_name, ssdt = dumped(found, b"SSDT", "ASUS SSDT (OEM ID _ASUS_, table ID ASUSSSDT)", dump)
-        firmware(ssdt_name, ssdt, SSDT_INPUT, SSDT_OUTPUT, "ASUS SSDT")
-        names["SSDT"] = ssdt_name
-        source = repo / "provenance/hardware"
-        methods = json.loads((source / "power-method-changes.json").read_text())
-        require(tuple(row["method"] for row in methods) == METHODS, "Unexpected ASL method changes")
-        with tempfile.TemporaryDirectory(prefix="h7607a-acpi-") as work:
-            work = Path(work)
-            iasl = check_iasl(iasl, work)
-            asl = derive_asl(ssdt, (source / "power-source.sed").read_text(), iasl, work)
-            (work / "power.dsl").write_bytes(asl)
-            run_iasl(iasl, ["-p", "power", "power.dsl"], work)
-            compiled = (work / "power.aml").read_bytes()
-        compiler = "ACPICA iasl 20260408"
-        overrides["SSDT.aml"] = splice_ssdt(ssdt, compiled, json.loads((source / "power-splice.json").read_text()))
-        files.update({SSDT_PATH: ssdt, ASL_PATH: asl,
-                      ARCHIVE_PATH: archive(overrides["DSDT.aml"], overrides["SSDT.aml"])})
-    written = publish(repo, files)
-    return {"schema": 2, "firmware": FIRMWARE, "compiler": compiler, "dump": names,
-            "overrides": pins(overrides), "outputs": pins(files), "written": written}
+    name, dsdt = dumped_dsdt(dump)
+    firmware(name, dsdt)
+    override = patch_dsdt(dsdt)
+    files = {DSDT_PATH: dsdt, ARCHIVE_PATH: archive(override)}
+    written = [] if check_only else publish(repo, files)
+    return {"schema": 3, "firmware": FIRMWARE, "dump": {"DSDT": name},
+            "enabled": "\\_SB.SSPM", "gated_devices": [
+                {"device": device, "hid": hid, "sta_offset": f"0x{at:x}"} for device, hid, at in gated_devices(dsdt)],
+            "overrides": pins({"DSDT.aml": override}), "outputs": pins(files), "written": written}
 
 
-def cli(*, sspm_only=False):
+def cli(*, check_only=False):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--dump", required=True, type=Path, metavar="DIR",
-                        help="Directory holding this P16's DSDT and SSDT dumps")
-    if not sspm_only:
-        parser.add_argument("--iasl", default="iasl", help="ACPICA iasl 20260408 executable")
+                        help="Directory holding this Yoga's DSDT dump")
     args = parser.parse_args()
     try:
-        result = build(args.dump, iasl=getattr(args, "iasl", "iasl"), sspm_only=sspm_only)
-    except (ValueError, OSError, subprocess.SubprocessError) as error:
+        result = build(args.dump, check_only=check_only)
+    except (ValueError, OSError) as error:
         parser.exit(1, f"ACPI build failed: {error}\n")
     print(json.dumps(result, indent=2))

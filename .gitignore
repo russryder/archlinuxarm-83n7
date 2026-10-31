@@ -6,9 +6,7 @@ build/
 # Firmware ACPI tables and files derived from them are not redistributable.
 H7607A-ACPI/
 /01-platform/acpi/payload/assets/hardware/acpi/h7607a-acpi.cpio
-/01-platform/acpi/payload/assets/hardware/uefi/n1x-asus-ssdt-baseline.bin
 /01-platform/acpi/payload/assets/hardware/uefi/n1x-dsdt-baseline.bin
-/01-platform/acpi/payload/provenance/hardware/power-source.dsl
 # Pinned inputs fetched with ./assemble.sh --fetch or published in the inputs-1 release.
 /01-platform/kernel/payload/assets/hardware/kernel/h7607a-kernel-runtime.tar.zst
 /02-drivers/nvidia-display/payload/assets/build-inputs/nvidia.ko.zst

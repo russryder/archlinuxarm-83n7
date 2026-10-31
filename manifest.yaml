@@ -7,7 +7,7 @@
     },
     {
       "manifest": "01-platform/acpi/component.yaml",
-      "sha256": "159363d9a4c9198369fbe339813aea4a865177ff0907689c93a95e588cade8c5"
+      "sha256": "029546a6e3ed3b52bede3fd2c32dae187aca2c08d433ced26f4d52dcd80c808a"
     },
     {
       "manifest": "02-drivers/nvidia-display/component.yaml",
@@ -55,7 +55,7 @@
     },
     {
       "manifest": "07-build/media/component.yaml",
-      "sha256": "8371248a38be7985fac768865156fa14ca52e35ca945bfc83be83cc59af62869"
+      "sha256": "0ad077b1a31bf94af9ab5435c464393a7d8a9821f8ab755ef08729cef471ea89"
     },
     {
       "manifest": "07-build/packages/component.yaml",
@@ -67,7 +67,7 @@
     },
     {
       "manifest": "08-documentation/current/component.yaml",
-      "sha256": "230c9d413393800297727749744b0ad7ece9f40c2f823c5110a01816b80e1b6f"
+      "sha256": "485c384f9cc11e32020303c2703be94db97b416aed55668f73aec7bea50607e0"
     }
   ],
   "assembly": {
