@@ -204,7 +204,7 @@ def hygiene(root):
  write_text(root,'etc/NetworkManager/conf.d/10-dns.conf','[main]\ndns=systemd-resolved\n')
  remove_path(root,'etc/resolv.conf');(root/'etc/resolv.conf').symlink_to('../run/systemd/resolve/stub-resolv.conf')
  write_text(root,'etc/machine-id','')
- write_text(root,'etc/motd','ASUS ProArt P16 H7607BA - Arch Linux ARM installer\n\nConnect networking with nmtui if needed, then run: archinstall\nThe guided installer creates a fresh system on the internal SSD.\n')
+ write_text(root,'etc/motd','Lenovo Yoga 9 2-in-1 16N1X11 (83N7) - Arch Linux ARM installer\n\nConnect networking with nmtui if needed, then run: archinstall\nThe guided installer creates a fresh system on the internal SSD.\n')
  write_text(root,'etc/systemd/system/getty@tty1.service.d/installer.conf','[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --autologin root --noclear %I $TERM\n')
  write_text(root,'etc/fstab',f"UUID={lock()['root_uuid']} / ext4 defaults,noatime 0 1\nUUID={lock()['ESP_uuid']} /boot vfat defaults,umask=0077 0 2\n")
  run(['systemctl','--root',root,'set-default','multi-user.target'])

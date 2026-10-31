@@ -319,7 +319,7 @@
       "source": "payload/locks/packages.json",
       "destination": "locks/packages.json",
       "bytes": 19688,
-      "sha256": "0553d68532a419cb5d4e0ccc04c508e66c71625cc72873154c57314dea0b5bfc",
+      "sha256": "dce72f7a7bfbe6c9cd9f6ece9798a30d9b1906a049158a993d708d0624b6e6f2",
       "mode": 420
     },
     {

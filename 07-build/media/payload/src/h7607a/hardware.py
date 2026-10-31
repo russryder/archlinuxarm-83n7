@@ -15,7 +15,7 @@ KERNEL_RELEASE = '7.0.0-1022-nvidia'
 KERNEL_IMAGE = 'vmlinuz-linux-n1x'
 INITRAMFS_IMAGE = 'initramfs-linux-n1x.img'
 INITCPIO_HOOK = 'h7607a-preload'
-INITCPIO_MODULES = ('hid_asus', 'nvme', 'xhci_pci', 'xhci_plat_hcd', 'xhci_mtk_hcd', 'usb_storage', 'uas',
+INITCPIO_MODULES = ('nvme', 'xhci_pci', 'xhci_plat_hcd', 'xhci_mtk_hcd', 'usb_storage', 'uas',
                    'i2c_mt65xx', 'i2c_hid_acpi', 'usbhid', 'hid_generic', 'hid_multitouch',
                    'nvidia', 'nvidia_modeset', 'nvidia_uvm', 'nvidia_drm')
 PACKAGES = {
@@ -23,7 +23,7 @@ PACKAGES = {
     'nvidia-utils': '615.78.08-1',
     'nvidia-n1x-userspace-fix': '615.78.08-1',
     'nvidia-n1x-modules': '615.78.08-4',
-    'h7607a-hardware': '1.0.0-4',
+    'h7607a-hardware': '1.0.0-5',
     'linux-firmware-mediatek': '20260916-1',
     'linux-firmware-cirrus': '20260916-1',
     'linux-firmware-whence': '20260916-1',
@@ -198,7 +198,7 @@ def write_boot_files(target, esp, kernel_parameters, *, root_uuid, repo_root=Non
                .replace('@KERNEL_PARAMETERS@', ' '.join(options)))
     require(not re.search(r'@[A-Z_]+@', startup), 'Unresolved boot template token')
     copied['EFI/H7607A/startup.nsh'] = digest(_write(esp, 'EFI/H7607A/startup.nsh', startup.encode()))
-    title = 'n1x p16 installer' if installer else 'Arch Linux ARM - ASUS ProArt P16'
+    title = 'n1x yoga 9n installer' if installer else 'Arch Linux ARM - Lenovo Yoga 9n'
     entry = ('title ' + title + '\nefi /EFI/H7607A/Shell.efi\noptions -startup -delay 0\n').encode()
     copied['loader/entries/h7607a.conf'] = digest(_write(esp, 'loader/entries/h7607a.conf', entry))
     copied['loader/loader.conf'] = digest(_write(esp, 'loader/loader.conf', b'default h7607a.conf\ntimeout 3\nconsole-mode keep\nauto-entries no\nauto-firmware yes\n'))

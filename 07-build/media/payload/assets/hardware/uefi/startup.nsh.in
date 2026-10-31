@@ -1,5 +1,5 @@
 @echo -off
-# Boot this filesystem with the pinned H7607BA ACPI compatibility archive.
+# Boot this filesystem with the pinned Yoga 9n (SDCN77WW) ACPI compatibility archive.
 # homefilesystem is derived by EDK2 from this Shell's LoadedImage device.
 if x%homefilesystem% == x then
   echo STOP: this Shell has no own-filesystem mapping.
@@ -31,7 +31,7 @@ if not exist \initramfs-linux-n1x.img then
   echo STOP: installed initramfs is missing.
   exit /b 1
 endif
-echo H7607BA boot source: %homefilesystem% root UUID: @ROOT_UUID@
+echo Yoga 9n boot source: %homefilesystem% root UUID: @ROOT_UUID@
 echo Starting Linux kernel and initramfs.
 %homefilesystem%\vmlinuz-linux-n1x initrd=\h7607a-acpi.cpio initrd=\initramfs-linux-n1x.img @KERNEL_PARAMETERS@
 set -v H7607A_LINUX_STATUS %lasterror%

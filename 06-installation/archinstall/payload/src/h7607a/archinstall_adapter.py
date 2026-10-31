@@ -100,14 +100,17 @@ def verify_device(repo: Path, dmi: Path = Path("/sys/class/dmi/id")) -> None:
 
     device = load_hardware_lock(repo)["device"]
     found = {}
-    for key in ("board_name", "bios_version"):
+    # Lenovo reuses board codes across models, so the machine type (product_name) is checked too.
+    for key in ("product_name", "board_name", "bios_version"):
         try:
             found[key] = (dmi / key).read_text().strip()
         except OSError:
             found[key] = "unknown"
     if found != {key: device[key] for key in found}:
-        raise InstallError(f"This installer supports only the {device['sys_vendor']} {device['product_name']} "
-                           f"with firmware {device['bios_version']}; this machine reports board "
+        model = device.get("product_version", device["product_name"])
+        raise InstallError(f"This installer supports only the {device['sys_vendor']} {model} "
+                           f"(machine type {device['product_name']}) with firmware {device['bios_version']}; "
+                           f"this machine reports machine type {found['product_name']}, board "
                            f"{found['board_name']} with firmware {found['bios_version']}. The ACPI overrides "
                            f"it installs are built from the {device['bios_version']} firmware tables and would "
                            "not match this machine. Disks were not changed.")
@@ -891,7 +894,7 @@ def make_native_components(repo: Path, lock: dict):
             hook = lock["initcpio_hook"]
             if hook not in installation._hooks:
                 installation._hooks.insert(0, hook)
-            for module in ("hid_asus", "nvidia", "nvidia_modeset", "nvidia_uvm", "nvidia_drm"):
+            for module in ("nvidia", "nvidia_modeset", "nvidia_uvm", "nvidia_drm"):
                 installation.append_mod(module)
             self.initrd_active = True
             try:
@@ -1006,7 +1009,7 @@ def guided_main(repo: Path, lock: dict, handler, components, preferences) -> Non
     plugin.configuration = config
     while True:
         result = tui.run(Menu(config, mirrors, advanced=getattr(handler.args, "advanced", False),
-                              title="Arch Linux ARM · ASUS ProArt P16"))
+                              title="Arch Linux ARM · Lenovo Yoga 9n"))
         if result is None:
             return
         config.write_debug()

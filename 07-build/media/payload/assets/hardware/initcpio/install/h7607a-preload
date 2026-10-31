@@ -1,12 +1,13 @@
 #!/bin/bash
 # SPDX-License-Identifier: MIT
 build() {
-    # Built in an ARM VM: autodetect cannot discover the P16's USB/I2C paths.
+    # Built in an ARM VM: autodetect cannot discover the Yoga's USB/I2C paths.
+    # The keyboard (LENC:0001) and touchpad are I2C-HID behind i2c_mt65xx, so
+    # the generic HID stack below is all the passphrase prompt needs.
     local controller firmware
     for controller in nvme xhci_pci xhci_plat_hcd xhci_mtk_hcd usb_storage uas i2c_mt65xx i2c_hid_acpi usbhid hid_generic hid_multitouch; do
         add_module "$controller" || return 1
     done
-    add_module hid_asus || return 1
     add_module nvidia || return 1
     add_module nvidia_modeset || return 1
     add_module nvidia_uvm || return 1
@@ -20,8 +21,7 @@ build() {
             add_file "/usr/lib/firmware/cirrus/$firmware" || return 1
         fi
     done
-    add_runscript || return 1
 }
 help() {
-    echo 'Load the exact H7607BA keyboard driver before udev and include qualified display/audio assets.'
+    echo 'Include the N1X storage, input, display and audio modules that autodetect misses.'
 }

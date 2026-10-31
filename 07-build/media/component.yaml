@@ -315,7 +315,7 @@
         }
       ],
       "notes": [
-        "Preload hid_asus before udev; retain ordinary BusyBox encrypt/lvm2/btrfs hooks.",
+        "Add the N1X storage, I2C-HID input, display and audio modules autodetect misses; retain ordinary BusyBox encrypt/lvm2/btrfs hooks.",
         "Include xhci_plat_hcd/xhci_mtk_hcd/NVMe and explicit I2C/USB input drivers.",
         "Keep module decompression disabled; include NVIDIA/audio/firmware closure."
       ]
@@ -615,29 +615,22 @@
     {
       "source": "payload/assets/hardware/depmod/h7607a.conf",
       "destination": "assets/hardware/depmod/h7607a.conf",
-      "bytes": 495,
-      "sha256": "09ec1f7fbd7eab7ea4fb7fcaaafb1db9b2896fe93ec653a5548620907c9c7e75",
+      "bytes": 440,
+      "sha256": "bd7d030c18f6de676480a1d1fb0024ef005b42e8457b59dc28df5a78a26e6d2a",
       "mode": 420
     },
     {
       "source": "payload/assets/hardware/initcpio/h7607a.conf",
       "destination": "assets/hardware/initcpio/h7607a.conf",
-      "bytes": 1421,
-      "sha256": "e8e89a13ffea5ca30a7fb4bf633688618d7659bebd47e0843ea30d38c763dc9f",
-      "mode": 420
-    },
-    {
-      "source": "payload/assets/hardware/initcpio/hooks/h7607a-preload",
-      "destination": "assets/hardware/initcpio/hooks/h7607a-preload",
-      "bytes": 279,
-      "sha256": "cde878e5e277782e45a4d10a0b16a086ee9ce011f8d5ab32cba20c5379f878af",
+      "bytes": 1412,
+      "sha256": "6975064ff89fdfc2155b85686e132325d09478b0b74633606b290106c5962af4",
       "mode": 420
     },
     {
       "source": "payload/assets/hardware/initcpio/install/h7607a-preload",
       "destination": "assets/hardware/initcpio/install/h7607a-preload",
-      "bytes": 1251,
-      "sha256": "846ef7ff8038f0f2f5c1b8512424fd8c92c8c1a02e458dc9ea9f79e7f7df03f5",
+      "bytes": 1321,
+      "sha256": "7cc64282a0573ca9b99e07cddfa643ac304f69be2219a71713b8121650e3d5a9",
       "mode": 420
     },
     {
@@ -657,15 +650,15 @@
     {
       "source": "payload/assets/hardware/uefi/startup.nsh.in",
       "destination": "assets/hardware/uefi/startup.nsh.in",
-      "bytes": 1328,
-      "sha256": "b49ff21542c6fb2fc79317b3af66dfd651d49788ad9f832aa82fae364002cef4",
+      "bytes": 1339,
+      "sha256": "77c17cb6076eb53879692a2e0dcb40ab60879c6748741915488b98ae567b08e2",
       "mode": 420
     },
     {
       "source": "payload/locks/hardware.json",
       "destination": "locks/hardware.json",
-      "bytes": 36915,
-      "sha256": "36986d28d090ad37e61f5e0a4fc7ff3b8ce264e7b6fb54526b03aeb6d204640e",
+      "bytes": 34618,
+      "sha256": "ecba90c45fdb7614af6d3c57507b913ca0085d13ddced472a2ff7056e22f655f",
       "mode": 420
     },
     {
@@ -679,7 +672,7 @@
       "source": "payload/locks/live-tools.json",
       "destination": "locks/live-tools.json",
       "bytes": 266553,
-      "sha256": "3952f96ce46cef3616012685bdeb5119f226e9a6cdf3757dd2fd1997e3bf2e7e",
+      "sha256": "a932a88242abb8db88f16ae456e78a01728ddf9def1222fe0b7014a2ba5fad5f",
       "mode": 420
     },
     {
@@ -699,22 +692,22 @@
     {
       "source": "payload/packages/h7607a-hardware/PKGBUILD",
       "destination": "packages/h7607a-hardware/PKGBUILD",
-      "bytes": 4356,
-      "sha256": "fe16b0f126b8bf0c1059cf899dd371d2830cc9ca7c76ec36099af24600747b66",
+      "bytes": 3999,
+      "sha256": "1aaaadd583730657ff6741c2a3732408b3c4ab0870c61fd23cb961eeaf55f4b3",
       "mode": 420
     },
     {
       "source": "payload/packages/h7607a-hardware/inputs.json",
       "destination": "packages/h7607a-hardware/inputs.json",
-      "bytes": 1739,
-      "sha256": "87d22e335edd867870470a1c004db11de86f0f380923fd0bd7a5ffe7f6bd00af",
+      "bytes": 1561,
+      "sha256": "183215dd77841931ee11173ac4e41d514c464f374c0332718282e8fff2e5df95",
       "mode": 420
     },
     {
       "source": "payload/scripts/build-live.py",
       "destination": "scripts/build-live.py",
-      "bytes": 21051,
-      "sha256": "2122614bb361eb34cc059a44f8c7490913e2b68fb031f248671e820516c5e167",
+      "bytes": 21063,
+      "sha256": "3f3078d494bd57aae4a6680826938c56ad81a897c1c23cad624cedb5ffe76efe",
       "mode": 493
     },
     {
@@ -741,8 +734,8 @@
     {
       "source": "payload/src/h7607a/hardware.py",
       "destination": "src/h7607a/hardware.py",
-      "bytes": 10165,
-      "sha256": "fef71bbee7c4ca0328c12e5682baee354a9284d30868b7a575facdabb210fc20",
+      "bytes": 10156,
+      "sha256": "e803a4d83b923a74cec7e6dafb153c7d8641b97639f14135604b4f7eb1d7291f",
       "mode": 420
     },
     {

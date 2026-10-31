@@ -1,8 +1,8 @@
-# Exact retained H7607BA assets plus native ABI-verified SoundWire backport.
+# Lenovo Yoga 9n (83N7) hardware assets plus native ABI-verified SoundWire backport.
 pkgname=h7607a-hardware
 pkgver=1.0.0
-pkgrel=4
-pkgdesc='ASUS H7607BA keyboard, audio, input and boot support with SoundWire race repair'
+pkgrel=5
+pkgdesc='Lenovo Yoga 9 2-in-1 16N1X11 audio, input and boot support with SoundWire race repair'
 arch=('aarch64')
 url='https://github.com/pfeifferj/archlinuxarm-proart-p16'
 license=('GPL-2.0-only' 'GPL-2.0-or-later' 'MIT' 'BSD-3-Clause')
@@ -15,10 +15,8 @@ optdepends=(
 backup=('etc/mkinitcpio.conf.d/h7607a.conf')
 options=('!strip' '!debug')
 source=(
-  'hid-asus.ko'
   'mt8901-acp-sdw-legacy-mach.ko'
   'initcpio-install'
-  'initcpio-hook'
   'mkinitcpio.conf'
   'depmod.conf'
   'nvidia.conf'
@@ -36,12 +34,10 @@ source=(
   'LICENSE.ucm'
 )
 sha256sums=(
-  '608b9297256b1e6b60fb26589777546a67f6aa2a615a8498ade8e37b8aa8e617'
   '82061bce3a3b649c9f351b398c59546c8a978b2c3badbaa07436e6221e91d5de'
-  '846ef7ff8038f0f2f5c1b8512424fd8c92c8c1a02e458dc9ea9f79e7f7df03f5'
-  'cde878e5e277782e45a4d10a0b16a086ee9ce011f8d5ab32cba20c5379f878af'
-  'e8e89a13ffea5ca30a7fb4bf633688618d7659bebd47e0843ea30d38c763dc9f'
-  '09ec1f7fbd7eab7ea4fb7fcaaafb1db9b2896fe93ec653a5548620907c9c7e75'
+  '7cc64282a0573ca9b99e07cddfa643ac304f69be2219a71713b8121650e3d5a9'
+  '6975064ff89fdfc2155b85686e132325d09478b0b74633606b290106c5962af4'
+  'bd7d030c18f6de676480a1d1fb0024ef005b42e8457b59dc28df5a78a26e6d2a'
   '6b71fcb4d8eb66bf6aa1c1d66e60873635dd48e8f68f2511130dbabc688d55c6'
   'aaae00438e0cad22150263d65b6c0fd00bf0618ca10ab8ddff47c7d00e8c77a8'
   '14d7908b992750aeb8e960eba1ce7cdf3a3de46af66d5d9abdf1bddc38462c65'
@@ -58,10 +54,8 @@ sha256sums=(
 )
 
 package() {
-  install -Dm644 "$srcdir/hid-asus.ko" "$pkgdir/usr/lib/modules/7.0.0-1022-nvidia/updates/h7607a/hid-asus.ko"
   install -Dm644 "$srcdir/mt8901-acp-sdw-legacy-mach.ko" "$pkgdir/usr/lib/modules/7.0.0-1022-nvidia/updates/h7607a/mt8901-acp-sdw-legacy-mach.ko"
   install -Dm644 "$srcdir/initcpio-install" "$pkgdir/usr/lib/initcpio/install/h7607a-preload"
-  install -Dm644 "$srcdir/initcpio-hook" "$pkgdir/usr/lib/initcpio/hooks/h7607a-preload"
   install -Dm644 "$srcdir/mkinitcpio.conf" "$pkgdir/etc/mkinitcpio.conf.d/h7607a.conf"
   install -Dm644 "$srcdir/depmod.conf" "$pkgdir/usr/lib/depmod.d/h7607a.conf"
   install -Dm644 "$srcdir/nvidia.conf" "$pkgdir/usr/lib/modprobe.d/h7607a-nvidia.conf"

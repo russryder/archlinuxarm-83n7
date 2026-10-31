@@ -331,14 +331,14 @@
       "source": "payload/locks/archinstall.json",
       "destination": "locks/archinstall.json",
       "bytes": 4329,
-      "sha256": "b7cdc49aec0d3068337b344bf8e174592b5fbf7c95854850b345851cb2d94343",
+      "sha256": "572dcbe4e683394da668aef96664f48bbd0bb063207f0216381720f22966cad9",
       "mode": 420
     },
     {
       "source": "payload/src/h7607a/archinstall_adapter.py",
       "destination": "src/h7607a/archinstall_adapter.py",
-      "bytes": 53588,
-      "sha256": "5bdee53c512bde9867affbe0769d23f9a790acac2423d607c48e12a1ad115cdd",
+      "bytes": 53851,
+      "sha256": "38dfeba7de76417e5787fa03393f0303c952744969fcd6148598f367ebf1dfd8",
       "mode": 420
     },
     {
@@ -358,8 +358,8 @@
     {
       "source": "payload/tests/test_archinstall_adapter.py",
       "destination": "tests/test_archinstall_adapter.py",
-      "bytes": 25787,
-      "sha256": "95d7a4eefadfdbb397bf10bb0c938f0c4766f8b8ec4abc928fc660c84f8b0c03",
+      "bytes": 26284,
+      "sha256": "073933798ef681c4060c37f08d4ce757d659c04ef775eef73207f34d6bb8229c",
       "mode": 420
     }
   ],

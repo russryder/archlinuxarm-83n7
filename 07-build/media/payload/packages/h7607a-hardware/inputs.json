@@ -3,20 +3,12 @@
   "package": "h7607a-hardware",
   "inputs": [
     {
-      "artifact_id": "hid-asus-h7607ba",
-      "filename": "hid-asus.ko"
-    },
-    {
       "artifact_id": "mt8901-h7607ba-audio",
       "filename": "mt8901-acp-sdw-legacy-mach.ko"
     },
     {
       "artifact_id": "h7607a-initcpio-install",
       "filename": "initcpio-install"
-    },
-    {
-      "artifact_id": "h7607a-initcpio-hook",
-      "filename": "initcpio-hook"
     },
     {
       "artifact_id": "h7607a-initcpio-config",

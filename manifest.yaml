@@ -14,10 +14,6 @@
       "sha256": "7af01c6a358bd13fee83ee137dc8a4d9694eac193256b0259f04374596945147"
     },
     {
-      "manifest": "02-drivers/keyboard/component.yaml",
-      "sha256": "f3fc9c92734a395de5e07882088c140a210fc0d60f5b67513ad471f64bfed900"
-    },
-    {
       "manifest": "02-drivers/audio/component.yaml",
       "sha256": "84698dbb901d74b96fcfe674352357f0a522addf9dec27d67dba86ba85361ffa"
     },
@@ -47,7 +43,7 @@
     },
     {
       "manifest": "06-installation/archinstall/component.yaml",
-      "sha256": "a934f10a973d5387a9869bc23fbc23bba09bcd717f3a29cc19f19ecad8282fbc"
+      "sha256": "630d8b9e8f617de25e3901ec1c714a26995ab21114a8fc48c6267a59aca49cc3"
     },
     {
       "manifest": "06-installation/wheel-carrier/component.yaml",
@@ -55,11 +51,11 @@
     },
     {
       "manifest": "07-build/media/component.yaml",
-      "sha256": "0ad077b1a31bf94af9ab5435c464393a7d8a9821f8ab755ef08729cef471ea89"
+      "sha256": "546d7bcc221a55651e4ed62490ed4a59333b92f707917c0cfdb651b581a55374"
     },
     {
       "manifest": "07-build/packages/component.yaml",
-      "sha256": "6095cd1249ea1f12016889eb2976accb6e7d9a0203335dc9cd76008c35674960"
+      "sha256": "f4cad5ee65ff151a9081f1bc4252033b4df13562a5417c61879c42a9c7c78f6a"
     },
     {
       "manifest": "07-build/locked-inputs/component.yaml",

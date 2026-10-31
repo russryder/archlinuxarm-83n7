@@ -266,27 +266,35 @@ class DeviceTest(unittest.TestCase):
         root = temporary_directory(self)
         self.repo = root / "repo"
         (self.repo / "locks").mkdir(parents=True)
-        device = {"sys_vendor": "ASUS", "product_name": "ProArt P16 H7607BA",
-                  "board_name": "H7607BA", "bios_version": "H7607BA.300"}
+        device = {"sys_vendor": "LENOVO", "product_name": "83N7", "product_version": "Yoga 9 2-in-1 16N1X11",
+                  "board_name": "LNVNB161216", "bios_version": "SDCN77WW"}
         (self.repo / "locks/hardware.json").write_text(json.dumps({"device": device}))
         self.dmi = root / "dmi"
         self.dmi.mkdir()
 
-    def identify(self, board, bios):
+    def identify(self, board, bios, product="83N7"):
+        (self.dmi / "product_name").write_text(product + "\n")
         (self.dmi / "board_name").write_text(board + "\n")
         (self.dmi / "bios_version").write_text(bios + "\n")
 
-    def test_shipped_lock_accepts_h7607ba_300(self):
-        self.identify("H7607BA", "H7607BA.300")
+    def test_shipped_lock_accepts_sdcn77ww(self):
+        self.identify("LNVNB161216", "SDCN77WW")
         adapter.verify_device(REPO, self.dmi)
 
     def test_other_firmware_is_refused(self):
-        self.identify("H7607BA", "H7607BA.301")
+        for bios in ("SDCN74WW", "SDCN78WW"):
+            with self.subTest(bios=bios), self.assertRaises(InstallError) as caught:
+                self.identify("LNVNB161216", bios)
+                adapter.verify_device(self.repo, self.dmi)
+        self.assertIn("SDCN77WW", str(caught.exception))
+
+    def test_other_board_is_refused(self):
+        self.identify("LNVNB161215", "SDCN77WW")
         with self.assertRaises(InstallError):
             adapter.verify_device(self.repo, self.dmi)
 
-    def test_other_board_is_refused(self):
-        self.identify("H7606WI", "H7607BA.300")
+    def test_other_machine_type_with_the_same_board_is_refused(self):
+        self.identify("LNVNB161216", "SDCN77WW", product="83N8")
         with self.assertRaises(InstallError):
             adapter.verify_device(self.repo, self.dmi)
 
