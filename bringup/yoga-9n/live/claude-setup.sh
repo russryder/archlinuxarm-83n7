@@ -6,7 +6,10 @@
 set -euo pipefail
 die() { echo "STOP: $*" >&2; exit 1; }
 [[ $EUID == 0 ]] || die 'run as root'
-[[ $(findmnt -no UUID /) == 4dd7d947-b72c-431f-a74e-3272227ba90c ]] || die 'this is not the live stick'
+root_uuid=$(findmnt -no UUID /)
+# The ESP carries H7607A-<root UUID>.OK, written when the image is built, so this
+# identifies the stick without pinning a UUID that changes per image build.
+[[ -f /boot/H7607A-$root_uuid.OK ]] || die 'this is not the live stick (no /boot/H7607A-<root UUID>.OK)'
 [[ -f /boot/yoga9n-CLAUDE.md ]] || die '/boot/yoga9n-CLAUDE.md is missing'
 getent hosts claude.ai >/dev/null || die 'no network; connect with nmtui first'
 

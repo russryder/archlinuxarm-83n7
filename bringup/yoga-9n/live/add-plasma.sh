@@ -12,15 +12,17 @@
 #      support and a browser;
 #   5. create USERNAME with sudo rights and start Plasma at boot.
 # Only the stick is touched: the root filesystem must be the live image's
-# (UUID 4dd7d947-...) on a USB disk.
+# (identified by the ESP's H7607A-<root UUID>.OK sentinel) on a USB disk.
 set -euo pipefail
 die() { echo "STOP: $*" >&2; exit 1; }
 [[ $EUID == 0 ]] || die 'run as root'
 user=${1-}
 [[ $user =~ ^[a-z_][a-z0-9_-]{0,31}$ && $user != root ]] || die "usage: $0 USERNAME (lower case, not root)"
 
-root_uuid=4dd7d947-b72c-431f-a74e-3272227ba90c
-[[ $(findmnt -no UUID /) == "$root_uuid" ]] || die 'the root filesystem is not the live stick image'
+root_uuid=$(findmnt -no UUID /)
+# The ESP carries H7607A-<root UUID>.OK, written when the image is built, so this
+# identifies the stick without pinning a UUID that changes per image build.
+[[ -f /boot/H7607A-$root_uuid.OK ]] || die 'the root filesystem is not the live stick image'
 root_dev=$(findmnt -no SOURCE /)
 part=$(basename "$root_dev")
 disk=/dev/$(lsblk -no PKNAME "$root_dev")
