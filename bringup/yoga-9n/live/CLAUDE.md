@@ -1,3 +1,37 @@
+> ## READ FIRST
+>
+> See `bringup/yoga-9n/findings-2026-11-21-webcam-microphone.md` for the full
+> webcam/microphone analysis. Three things that change what you should do:
+>
+> 1. **The microphone is NOT a driver gap.** The machine driver already
+>    creates capture links (`UL0`-`UL5`, `VUL_CM0`-`2`, `SDW%d-CAPTURE`,
+>    `capture_only`). It was gated off in configuration only: the UCM exposed
+>    no capture device and WirePlumber disabled every `alsa_input.*` node.
+>    Both are fixed as of 2026-11-21 (`Yoga9n-hifi.conf` replaces
+>    `Yoga9n-playback.conf`; the input-disable rule is gone from
+>    `51-h7607a-playback.conf`). Russ confirmed the original disabling was a
+>    *"getting a working bootable linux first"* scoping decision, not a privacy
+>    one, so capture needs no further permission. **The new UCM has never been
+>    run** - verify with `arecord -l`, a raw `arecord -D hw:0,8`, and
+>    `amixer -c 0 controls`, and correct the control names if they differ.
+>
+> 2. **The webcam has no driver anywhere** - not mainline, not NV-Kernels, and
+>    no NVIDIA ISP driver has ever existed in Linux. It is MIPI-CSI (OV08X40
+>    on I2C0 @0x10; IR VD55G0 on I2C4 @0x10), not USB. The viable route is
+>    SENINF -> CAMSV raw capture + libcamera software ISP, skipping the ISP.
+>    That is a project, not a fix. Leave the WirePlumber `monitor.v4l2` and
+>    `monitor.libcamera` monitors disabled until a driver exists.
+>
+> 3. **The stick you boot may not match the identifiers below.** The values in
+>    this document describe the canonical image built by
+>    `bringup/yoga-9n/wsl/make-disk-image.sh` (ESP `N1XESP` / `8B98-C777`,
+>    root `N1XALARM` / `4dd7d947-...`). A stick built another way will differ -
+>    the one in Russ's hands on 2026-11-21 was `YOGAESP` / `9EC6-02E4` with
+>    root `7f3e387a-...` and `-yoga` kernel images. `claude-setup.sh` and
+>    `add-plasma.sh` therefore no longer pin a UUID; they check for the ESP's
+>    `H7607A-<root UUID>.OK` sentinel instead. Read the real values off the
+>    running system rather than from this file.
+
 # Yoga 9n live stick: hardware bring-up session
 
 You are running on the **live Arch Linux ARM USB stick** booted on the
