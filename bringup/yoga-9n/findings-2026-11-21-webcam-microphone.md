@@ -16,6 +16,31 @@ Produced 2026-11-21 from the Windows side of the target machine (Lenovo Yoga 9
 Line references are into the decompiled DSDT. The ACPI binaries and anything
 derived from them are not redistributable and are excluded by `.gitignore`.
 
+> ## Corrected 2026-11-21 14:32 PST
+>
+> Two conclusions in this document, and two more in the stick's
+> `reports/report-20261121-1323-hfrp.md`, are now known wrong. The corrections
+> are in **`reports/report-20261121-1432-windows-camera-power.md`**; read that
+> before acting on anything below about camera power.
+>
+> 1. The four `0x311C01xx` entries in HFRP's `_CRS` are **not four doorbells**.
+>    They are one mailbox register set -- `IN_STATUS`/`IN_SET` `+0x100`,
+>    `OUT_STATUS`/`OUT_SET` `+0x104`, `IN_CLR` `+0x108`, `OUT_CLR` `+0x10c` --
+>    read straight out of the live Windows registry under
+>    `Enum\ACPI\NVDA2801\...\Device Parameters\Mbox0`. There is one
+>    AP -> coprocessor doorbell, `IN_SET`.
+> 2. **Un-gating `\_SB.HFRP` is not the unblock.** It is harmless and already
+>    applied, but the camera does not need the mailbox. `hfrpsys` is MediaTek's
+>    name for the camera **power-domain controller**
+>    (`power-controller@31b50000`, compatible `mediatek,mt6991-hfrpsys-hwv`),
+>    and its GPL driver is `drivers/soc/mediatek/mtk-scpsys-mt6991-mmpc.c` --
+>    vendored at `camera/upstream/pm-domain/`. The earlier note that porting it
+>    was a dead end because its registers are absent from N1X's ACPI was a
+>    false negative: absent means unclaimed, not missing.
+>
+> Also settled: there is no HFRP firmware anywhere in the Windows driver store,
+> and nothing on Windows loads one, so stop looking for a blob.
+
 ## Summary
 
 | | Microphone | Webcam |
@@ -330,7 +355,10 @@ window. **Inference, not verified** — no MMIO trace was taken.
 Device (HFRP) {
     Name (_HID, "MTK00055")
     _CRS: IRQ 0x324; 0x311C0000 (0x100); 0x31270074 (4);
-          0x311C0100 / 0104 / 0108 / 010C (4 each)   <- doorbells
+          0x311C0100 / 0104 / 0108 / 010C (4 each)   <- NOT doorbells: see
+              correction above. One mailbox register set:
+              +0x100 IN_STATUS/IN_SET, +0x104 OUT_STATUS/OUT_SET,
+              +0x108 IN_CLR, +0x10c OUT_CLR
     Method (_STA) { If (_OSI ("Windows 2022")) { Return (Zero) }
                     Else { Return (0x0F) } }
 }

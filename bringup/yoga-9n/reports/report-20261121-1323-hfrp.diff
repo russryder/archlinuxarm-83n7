@@ -1,0 +1,242 @@
+--- a/provenance/hardware/acpi_builder.py
++++ b/provenance/hardware/acpi_builder.py
+@@ -18,11 +18,21 @@
+ The DSDT must be that of BIOS SDCN77WW. Five devices in this firmware use the
+ same _STA gate, If (_OSI ("Windows 2022")) { Return (0) } Else { Return (0x0F) },
+ which hides them from Windows and, since Linux also answers true to that _OSI
+-string, from Linux. Only \\_SB.SSPM (NVDA8400, the N1X power device) is
+-enabled: its predicate becomes Zero, padded with Noop so no length changes.
+-SSPM is located by walking the AML to the Device whose _HID is NVDA8400 and
+-then its _STA, not by offset or by searching for the predicate string, which
+-occurs three times. The other gated devices are reported and left alone.
++string, from Linux. Two are enabled, \\_SB.SSPM (NVDA8400, the N1X power
++device) and \\_SB.HFRP (MTK00055, the MediaTek HFRP mailbox): each predicate
++becomes Zero, padded with Noop so no length changes. Each is located by walking
++the AML to the Device whose _HID it is and then its _STA, not by offset and not
++by searching for the predicate string, which occurs three times. The other
++gated devices are reported and left alone.
++
++HFRP is what the camera votes its own power and clocks over: nvCamsys.sys has
++hfrp_ipi_init, __qof_mtcmos_raw_voter and mtk_cam_vcore_probe, while power_wrap
++lists \\_SB.ISP1 as CTRL_NONE, so camera power is not a PEP/SCMI client. No MTK*
++device is enumerated on Windows at all -- Windows reaches the same hardware
++through ISP1's own _CRS -- so this gate reads as one left open for an OS that
++does not claim Windows 2022. Enabling the device in the override is preferred
++to booting acpi_osi="!Windows 2022", which would also un-gate SVP0, NH1X and
++NMAP and change _OSI-dependent behaviour platform-wide.
+ 
+ The Lenovo EC methods (SSDT LfcECCom: RECM, WECM, CECB, RWEC) already keep
+ their FF-A buffers in named objects, so the ASUS-style SSDT repair of the
+@@ -40,9 +50,16 @@
+ OEM = b"LENOVOCB-01   "
+ OEM_REVISION = 4
+ DSDT_INPUT = "365db468ba36b20b8d972c9531259c6704e8eb04f7bf8d75cad08474f7fde868"
+-DSDT_OUTPUT = "06b53baf4f1b46b645579678ca2e28bd7536dd19e34fe7394d3726bd1e444f52"
+-ARCHIVE_OUTPUT = "812820d208d01e22b7604d7ad70dbec704b7f9b46a97c77324f6b849418b5488"
+-TARGET_HID = b"NVDA8400"
++DSDT_OUTPUT = "e1cdbd67f206dd847c3915ce4e05574d5ad5708e46e6ec4968b00db24ab2930c"
++ARCHIVE_OUTPUT = "83d93a8caf6700e5ab53ac8b06737f53fa10914ed5b44e7a65868e576342ebc0"
++# The override this one supersedes, enabling SSPM alone; recognised so that a
++# DSDT dumped from a machine booted with it is reported as such.
++SUPERSEDED_OUTPUTS = {
++    "06b53baf4f1b46b645579678ca2e28bd7536dd19e34fe7394d3726bd1e444f52": "the SSPM-only override",
++}
++# (device name, _HID) of each gated device this override enables.
++ENABLED = (("SSPM", b"NVDA8400"), ("HFRP", b"MTK00055"))
++OVERRIDE = "+".join(device for device, _ in ENABLED) + " override"
+ PREDICATE = b"_OSI\x0dWindows 2022\x00"
+ # Method (_STA, 0) { If (_OSI ("Windows 2022")) { Return (Zero) } Else { Return (0x0F) } }
+ GATED_STA = (b"\x14\x21_STA\x00" b"\xa0\x15" + PREDICATE + b"\xa4\x00" b"\xa1\x04\xa4\x0a\x0f")
+@@ -145,37 +162,40 @@
+     return None
+ 
+ 
+-def sspm_sta(dsdt):
+-    """Return the offset of SSPM's gated _STA, found through the device holding _HID NVDA8400."""
+-    hid = b"\x08_HID\x0d" + TARGET_HID + b"\x00"
++def gated_sta(dsdt, device, target_hid):
++    """Return the offset of DEVICE's gated _STA, found through the device holding _HID TARGET_HID."""
++    hid = b"\x08_HID\x0d" + target_hid + b"\x00"
+     devices = []
+     for offset, stop, name in objects(dsdt, b"\x5b\x82"):
+         if dsdt.find(hid, offset, stop) != -1:
+             inner = [d for d in objects(dsdt, b"\x5b\x82", offset + 2, stop)]
+             if not any(dsdt.find(hid, a, b) != -1 for a, b, _ in inner):
+                 devices.append((offset, stop, name))
+-    require(len(devices) == 1, f"Expected one Device with _HID {TARGET_HID.decode()}, found {len(devices)}")
++    require(len(devices) == 1, f"Expected one Device with _HID {target_hid.decode()}, found {len(devices)}")
+     offset, stop, name = devices[0]
+-    require(name.endswith(b"SSPM"), f"The {TARGET_HID.decode()} device is {name!r}, not SSPM")
++    require(name.endswith(device.encode("ascii")),
++            f"The {target_hid.decode()} device is {name!r}, not {device}")
+     methods = [m for m in objects(dsdt, b"\x14", offset, stop) if m[2] == b"_STA"]
+-    require(len(methods) == 1, f"Expected one _STA in SSPM, found {len(methods)}")
++    require(len(methods) == 1, f"Expected one _STA in {device}, found {len(methods)}")
+     at = methods[0][0]
+     require(dsdt[at:at + len(GATED_STA)] == GATED_STA,
+-            "SSPM._STA is not the expected Windows 2022 gate; this firmware differs from " + FIRMWARE)
++            f"{device}._STA is not the expected Windows 2022 gate; this firmware differs from " + FIRMWARE)
+     return at
+ 
+ 
+ def patch_dsdt(original):
+     exact(original, DSDT_INPUT, "Firmware DSDT")
+     table(original, b"DSDT", OEM, OEM_REVISION)
+-    at = sspm_sta(original)
++    offsets = [gated_sta(original, device, hid) for device, hid in ENABLED]
++    require(len(set(offsets)) == len(ENABLED), "Two enabled devices share one _STA")
+     modified = bytearray(original)
+-    modified[at:at + len(GATED_STA)] = PATCHED_STA
++    for at in offsets:
++        modified[at:at + len(GATED_STA)] = PATCHED_STA
+     struct.pack_into("<I", modified, 24, OEM_REVISION + 1)
+     modified[9] = 0
+     modified[9] = -sum(modified) % 256
+     table(modified, b"DSDT", OEM, OEM_REVISION + 1)
+-    return exact(bytes(modified), DSDT_OUTPUT, "SSPM override")
++    return exact(bytes(modified), DSDT_OUTPUT, OVERRIDE)
+ 
+ 
+ def member(name, data, mode, inode):
+@@ -189,7 +209,7 @@
+ 
+ 
+ def archive(dsdt):
+-    exact(dsdt, DSDT_OUTPUT, "SSPM override")
++    exact(dsdt, DSDT_OUTPUT, OVERRIDE)
+     result = b"".join(member(name, b"", stat.S_IFDIR | 0o755, inode)
+                       for inode, name in enumerate(("kernel", "kernel/firmware", "kernel/firmware/acpi"), 1))
+     result += member("kernel/firmware/acpi/DSDT.aml", dsdt, stat.S_IFREG | 0o644, 4)
+@@ -225,8 +245,9 @@
+ 
+ def firmware(name, data):
+     digest = sha(data)
+-    require(digest != DSDT_OUTPUT,
+-            f"{name} is the DSDT from h7607a-acpi.cpio, not the firmware's; dump it from Windows or "
++    override = ({DSDT_OUTPUT: "this override"} | SUPERSEDED_OUTPUTS).get(digest)
++    require(override is None,
++            f"{name} is the DSDT from {override}, not the firmware's; dump it from Windows or "
+             "from a Linux booted without that archive")
+     require(digest == DSDT_INPUT,
+             f"{name} is not the DSDT of BIOS {FIRMWARE} (SHA-256 {digest}); "
+@@ -267,8 +288,8 @@
+     override = patch_dsdt(dsdt)
+     files = {DSDT_PATH: dsdt, ARCHIVE_PATH: archive(override)}
+     written = [] if check_only else publish(repo, files)
+-    return {"schema": 3, "firmware": FIRMWARE, "dump": {"DSDT": name},
+-            "enabled": "\\_SB.SSPM", "gated_devices": [
++    return {"schema": 4, "firmware": FIRMWARE, "dump": {"DSDT": name},
++            "enabled": [f"\\_SB.{device}" for device, _ in ENABLED], "gated_devices": [
+                 {"device": device, "hid": hid, "sta_offset": f"0x{at:x}"} for device, hid, at in gated_devices(dsdt)],
+             "overrides": pins({"DSDT.aml": override}), "outputs": pins(files), "written": written}
+ 
+--- a/provenance/hardware/sspm-patch.json
++++ b/provenance/hardware/sspm-patch.json
+@@ -2,21 +2,35 @@
+   "source": "assets/hardware/uefi/n1x-dsdt-baseline.bin",
+   "firmware": "SDCN77WW",
+   "original_sha256": "365db468ba36b20b8d972c9531259c6704e8eb04f7bf8d75cad08474f7fde868",
+-  "patched_sha256": "06b53baf4f1b46b645579678ca2e28bd7536dd19e34fe7394d3726bd1e444f52",
++  "patched_sha256": "e1cdbd67f206dd847c3915ce4e05574d5ad5708e46e6ec4968b00db24ab2930c",
++  "supersedes_patched_sha256": "06b53baf4f1b46b645579678ca2e28bd7536dd19e34fe7394d3726bd1e444f52",
+   "length_unchanged": 310717,
+   "checksum_valid": true,
+   "OEM_ID": "LENOVO",
+   "OEM_table_ID": "CB-01",
+   "OEM_revision_original": 4,
+   "OEM_revision_override": 5,
+-  "target": "\\_SB.SSPM._STA",
+-  "device_HID": "NVDA8400",
+-  "located_by": "Device holding _HID NVDA8400, then its only _STA; offsets are not pinned",
+-  "sta_offset_hex": "0x127e2",
+-  "predicate_offset_hex": "0x127eb",
+-  "predicate_length": 18,
+-  "original_sta_hex": "14215f53544100a0155f4f53490d57696e646f7773203230323200a400a104a40a0f",
+-  "patched_sta_hex": "14215f53544100a01500a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a400a104a40a0f",
++  "located_by": "Device holding each _HID, then its only _STA; offsets are not pinned",
++  "targets": [
++    {
++      "target": "\\_SB.SSPM._STA",
++      "device_HID": "NVDA8400",
++      "sta_offset_hex": "0x127e2",
++      "predicate_offset_hex": "0x127eb",
++      "predicate_length": 18,
++      "original_sta_hex": "14215f53544100a0155f4f53490d57696e646f7773203230323200a400a104a40a0f",
++      "patched_sta_hex": "14215f53544100a01500a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a400a104a40a0f"
++    },
++    {
++      "target": "\\_SB.HFRP._STA",
++      "device_HID": "MTK00055",
++      "sta_offset_hex": "0x1288d",
++      "predicate_offset_hex": "0x12896",
++      "predicate_length": 18,
++      "original_sta_hex": "14215f53544100a0155f4f53490d57696e646f7773203230323200a400a104a40a0f",
++      "patched_sta_hex": "14215f53544100a01500a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a400a104a40a0f"
++    }
++  ],
+   "changed_offsets_hex": [
+     "0x9",
+     "0x18",
+@@ -37,20 +51,34 @@
+     "0x127f9",
+     "0x127fa",
+     "0x127fb",
+-    "0x127fc"
++    "0x127fc",
++    "0x12896",
++    "0x12897",
++    "0x12898",
++    "0x12899",
++    "0x1289a",
++    "0x1289b",
++    "0x1289c",
++    "0x1289d",
++    "0x1289e",
++    "0x1289f",
++    "0x128a0",
++    "0x128a1",
++    "0x128a2",
++    "0x128a3",
++    "0x128a4",
++    "0x128a5",
++    "0x128a6",
++    "0x128a7"
+   ],
+-  "changed_bytes": 20,
+-  "effect": "If predicate is unconditionally Zero; existing Else returns 0x0f.",
++  "changed_bytes": 38,
++  "effect": "Each listed predicate is unconditionally Zero; each existing Else returns 0x0f.",
++  "HFRP_rationale": "Camera power and clocks are voted over the HFRP mailbox by the camera driver itself (nvCamsys.sys: hfrp_ipi_init, __qof_mtcmos_raw_voter, mtk_cam_vcore_probe, qof_ddren_setting), not requested from the PEP: power_wrap lists \\_SB.ISP1 as CTRL_NONE. No MTK* device is enumerated on Windows, which reaches the same hardware through ISP1's own _CRS.",
+   "other_gated_devices_left_hidden": [
+     {
+       "device": "SVP0",
+       "hid": "NVDA3000",
+       "sta_offset_hex": "0x12454"
+-    },
+-    {
+-      "device": "HFRP",
+-      "hid": "MTK00055",
+-      "sta_offset_hex": "0x1288d"
+     }
+   ],
+   "other_gated_devices_note": "SSDT CB-01 also gates NH1X (NVDA300A) and NMAP (NVDA300B) the same way; no SSDT is overridden.",
+--- a/provenance/hardware/power-archive.json
++++ b/provenance/hardware/power-archive.json
+@@ -1,7 +1,7 @@
+ {
+   "archive": "assets/hardware/acpi/h7607a-acpi.cpio",
+   "archive_bytes": 311808,
+-  "archive_sha256": "812820d208d01e22b7604d7ad70dbec704b7f9b46a97c77324f6b849418b5488",
++  "archive_sha256": "83d93a8caf6700e5ab53ac8b06737f53fa10914ed5b44e7a65868e576342ebc0",
+   "format": "uncompressed newc; 4-byte aligned members; 512-byte archive alignment",
+   "members": [
+     {
+@@ -29,7 +29,7 @@
+       "name": "kernel/firmware/acpi/DSDT.aml",
+       "bytes": 310717,
+       "mode": "0o100644",
+-      "sha256": "06b53baf4f1b46b645579678ca2e28bd7536dd19e34fe7394d3726bd1e444f52",
++      "sha256": "e1cdbd67f206dd847c3915ce4e05574d5ad5708e46e6ec4968b00db24ab2930c",
+       "data_start": 520
+     }
+   ],
