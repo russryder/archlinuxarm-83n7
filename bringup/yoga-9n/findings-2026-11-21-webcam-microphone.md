@@ -461,5 +461,6 @@ stick.
 - The kernel source tree for `7.0.0-1022-nvidia-yoga` is not in this
   repository — the running kernel was built on the stick itself. The stick has
   an approximated headers tree that builds and loads modules successfully.
-- Headset microphone untested (nothing plugged into the jack); audible playback
-  regression check still owed.
+- Headset microphone untested (nothing plugged into the jack). The audible
+  playback regression check is **done**: speakers confirmed still working
+  after capture was enabled, so the shared-SectionVerb change is safe.
