@@ -1,0 +1,1 @@
+obj-m := yoga9n-cam.o ov08x40.o n1x-seninf.o
